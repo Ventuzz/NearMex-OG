@@ -14,7 +14,6 @@ const Destinations = () => {
         if (found) {
             setReviews(found.reviews || []);
         }
-        // Check if in favorites (localStorage simulation)
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         setIsFavorite(favorites.includes(id));
     }, [id]);
@@ -40,7 +39,6 @@ const Destinations = () => {
         );
     }
 
-    // Get related items (excluding current)
     const relatedDestinations = destinations
         .filter(d => d.id !== id)
         .slice(0, 4);
@@ -146,7 +144,7 @@ const Destinations = () => {
                         <div className="col-lg-6">
                             <div className="section-heading">
                                 <h6>Turismo</h6>
-                                <h2>Destinos Similares</h2>
+                                <h2>También te puede interesar</h2>
                             </div>
                         </div>
                         <div className="col-lg-6">

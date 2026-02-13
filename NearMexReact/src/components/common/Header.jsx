@@ -14,12 +14,12 @@ const Header = () => {
                 <div className="row">
                     <div className="col-12">
                         <nav className="main-nav">
-                            {/* ***** Logo Start ***** */}
+                            {/* Logo Start */}
                             <Link to="/" className="logo">
                                 <img src="/assets/images/logo.png" alt="" style={{ width: '200px' }} />
                             </Link>
-                            {/* ***** Logo End ***** */}
-                            {/* ***** Menu Start ***** */}
+                            {/* Logo End */}
+                            {/* Menu Start */}
                             <ul className={`nav ${isMenuOpen ? 'active' : ''}`} style={{ display: isMenuOpen ? 'block' : undefined }}>
                                 <li><NavLink to="/" className={({ isActive }) => isActive ? "active" : ""}>Inicio</NavLink></li>
                                 <li><NavLink to="/catalog" className={({ isActive }) => isActive ? "active" : ""}>Destinos</NavLink></li>
@@ -29,7 +29,7 @@ const Header = () => {
                             <a className={`menu-trigger ${isMenuOpen ? 'active' : ''}`} onClick={toggleMenu}>
                                 <span>Menu</span>
                             </a>
-                            {/* ***** Menu End ***** */}
+                            {/*  Menu End */}
                         </nav>
                     </div>
                 </div>
