@@ -1,15 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
 const Header = () => {
+    const [isSticky, setIsSticky] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
 
+    useEffect(() => {
+        const handleScroll = () => {
+            const scroll = window.scrollY;
+            const headerTextElement = document.querySelector('.header-text');
+            const threshold = headerTextElement ? (headerTextElement.offsetHeight - 80) : 150;
+
+            if (scroll >= threshold) {
+                setIsSticky(true);
+            } else {
+                setIsSticky(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+
+        // Initial check
+        handleScroll();
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
     return (
-        <header className="header-area header-sticky">
+        <header className={`header-area header-sticky ${isSticky ? 'background-header' : ''}`}>
             <div className="container">
                 <div className="row">
                     <div className="col-12">

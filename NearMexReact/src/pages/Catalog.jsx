@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { destinations } from '../data/destinations';
 
 const Catalog = () => {
     const [filterCategory, setFilterCategory] = useState('All');
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state && location.state.category) {
+            setFilterCategory(location.state.category);
+        }
+    }, [location.state]);
 
     const handleFilter = (category) => {
         setFilterCategory(category);

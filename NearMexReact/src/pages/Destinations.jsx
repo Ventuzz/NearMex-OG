@@ -65,14 +65,27 @@ const Destinations = () => {
                             </div>
                         </div>
                         <div className="col-lg-6 align-self-center">
-                            <h4>{destination.fullName}</h4>
-                            <p>{destination.description}</p>
+                            <h4 style={{ fontSize: '33px' }}>{destination.fullName}</h4>
+                            <div style={{ marginBottom: '20px', fontSize: '18px', fontWeight: 'bold' }}>
+                                <span style={{ color: '#660000', marginRight: '15px' }}>
+                                    Categoría: <Link to="/catalog" state={{ category: destination.category }} style={{ color: '#660000', textDecoration: 'none' }}>{destination.category}</Link>
+                                </span>
+                                <span style={{ color: '#660000' }}>
+                                    Etiquetas: {destination.tags.map((tag, i) => (
+                                        <React.Fragment key={i}>
+                                            <span style={{ color: '#660000' }}>{tag}</span>
+                                            {i < destination.tags.length - 1 ? ', ' : ''}
+                                        </React.Fragment>
+                                    ))}
+                                </span>
+                            </div>
+                            <p style={{ fontSize: '20px' }}>{destination.description}</p>
 
                             <div className="main-button">
                                 <button
                                     onClick={toggleFavorite}
                                     style={{
-                                        backgroundColor: isFavorite ? '#ee626b' : '#000000',
+                                        backgroundColor: isFavorite ? '#ee626b' : '#660000',
                                         color: 'white',
                                         border: 'none',
                                         padding: '12px 30px',
@@ -80,19 +93,13 @@ const Destinations = () => {
                                         cursor: 'pointer',
                                         fontWeight: '500',
                                         textTransform: 'uppercase',
-                                        fontSize: '14px',
+                                        fontSize: '18px',
                                         transition: 'all .3s'
                                     }}
                                 >
                                     <i className={`fa ${isFavorite ? 'fa-heart' : 'fa-heart-o'}`}></i> {isFavorite ? 'En Favoritos' : 'Agregar a Favoritos'}
                                 </button>
                             </div>
-
-                            <ul className='mt-4'>
-                                <li><span>ID Destino:</span> {destination.id}</li>
-                                <li><span>Categoría:</span> <Link to="/catalog">{destination.category}</Link></li>
-                                <li><span>Etiquetas:</span> {destination.tags.map((tag, i) => <React.Fragment key={i}><Link to="/catalog">{tag}</Link>{i < destination.tags.length - 1 ? ', ' : ''}</React.Fragment>)}</li>
-                            </ul>
                         </div>
                         <div className="col-lg-12">
                             <div className="sep"></div>
@@ -110,7 +117,7 @@ const Destinations = () => {
                                     <div className="nav-wrapper ">
                                         <ul className="nav nav-tabs" role="tablist">
                                             <li className="nav-item" role="presentation">
-                                                <button className="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">Descripción</button>
+                                                <button className="nav-link active" id="map-tab" data-bs-toggle="tab" data-bs-target="#map" type="button" role="tab" aria-controls="map" aria-selected="true">Mapa</button>
                                             </li>
                                             <li className="nav-item" role="presentation">
                                                 <button className="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">Reseñas ({reviews.length})</button>
@@ -118,8 +125,8 @@ const Destinations = () => {
                                         </ul>
                                     </div>
                                     <div className="tab-content" id="myTabContent">
-                                        <div className="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
-                                            <p>{destination.description}</p>
+                                        <div className="tab-pane fade show active" id="map" role="tabpanel" aria-labelledby="map-tab">
+                                            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Mapa próximamente</div>
                                         </div>
                                         <div className="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
                                             {reviews.length > 0 ? (
