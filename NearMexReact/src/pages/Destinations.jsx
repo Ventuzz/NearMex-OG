@@ -72,7 +72,7 @@ const Destinations = () => {
                                 <button
                                     onClick={toggleFavorite}
                                     style={{
-                                        backgroundColor: isFavorite ? '#ee626b' : '#007bff',
+                                        backgroundColor: isFavorite ? '#ee626b' : '#000000',
                                         color: 'white',
                                         border: 'none',
                                         padding: '12px 30px',
