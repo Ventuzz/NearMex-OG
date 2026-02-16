@@ -1,5 +1,9 @@
 import React from 'react';
 
+/**
+ * Componente de Pie de Página (Footer).
+ * Muestra información de copyright.
+ */
 const Footer = () => {
     return (
         <footer>

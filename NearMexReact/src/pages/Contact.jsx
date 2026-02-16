@@ -1,6 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+/**
+ * Página de Contacto / Sobre Nosotros.
+ * Muestra información estática sobre la misión, visión y valores de la empresa.
+ * Incluye un mapa de ubicación y datos de contacto.
+ */
 const Contact = () => {
     return (
         <>

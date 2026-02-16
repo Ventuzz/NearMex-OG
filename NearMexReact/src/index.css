@@ -68,3 +68,67 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+
+.logout-button {
+  background-color: #660000;
+  color: white !important;
+  padding: 0 20px !important;
+  /* Centering fix */
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: normal !important;
+  font-weight: 500;
+  height: 40px !important;
+  /* Explicit height matches nav */
+  box-sizing: border-box;
+  margin-top: 0;
+}
+
+.logout-button:hover {
+  background-color: #330000;
+  color: white !important;
+}
+
+/* Force correct theme colors and override generic button styles */
+body button.btn-theme,
+body .btn-theme {
+  background-color: #660000 !important;
+  border-color: #660000 !important;
+  color: white !important;
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+body button.btn-theme:hover,
+body .btn-theme:hover,
+body button.btn-theme:focus,
+body .btn-theme:focus,
+body button.btn-theme:active,
+body .btn-theme:active {
+  background-color: #330000 !important;
+  border-color: #330000 !important;
+  color: white !important;
+  box-shadow: none !important;
+  /* Remove blue glow */
+}
+
+/* Force specific login button override */
+#login-btn {
+  background-color: #660000 !important;
+  border-color: #660000 !important;
+  color: white !important;
+  opacity: 1;
+}
+
+#login-btn:hover,
+#login-btn:focus,
+#login-btn:active {
+  background-color: #330000 !important;
+  border-color: #330000 !important;
+  color: white !important;
+  box-shadow: none !important;
+}

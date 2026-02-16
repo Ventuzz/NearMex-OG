@@ -2,20 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { destinations } from '../data/destinations';
 
+/**
+ * Página del Catálogo de Destinos.
+ * Muestra todos los destinos disponibles con funcionalidad de filtrado por categoría.
+ */
 const Catalog = () => {
+    // Estado para la categoría seleccionada, al principio es 'All' para mostrar todos los destinos
     const [filterCategory, setFilterCategory] = useState('All');
     const location = useLocation();
 
+    // Efecto para aplicar filtro si se recibe una categoría desde la pagina de destinos
     useEffect(() => {
         if (location.state && location.state.category) {
             setFilterCategory(location.state.category);
         }
     }, [location.state]);
 
+    // Manejador para cambiar el filtro
     const handleFilter = (category) => {
         setFilterCategory(category);
     };
 
+    // Lógica de filtrado de destinos
     const filteredDestinations = destinations.filter(item => {
         const matchesCategory = filterCategory === 'All' || item.category === filterCategory;
 
@@ -41,6 +49,7 @@ const Catalog = () => {
                     <div className="row mb-5" style={{ marginBottom: '40px' }}>
                     </div>
 
+                    {/* Menú de filtros por categoría */}
                     <ul className="trending-filter">
                         <li>
                             <a className={filterCategory === 'All' ? 'is_active' : ''} href="#!" onClick={() => handleFilter('All')}>Todos</a>
@@ -63,6 +72,7 @@ const Catalog = () => {
                     </ul>
 
                     <div className="row trending-box">
+                        {/* Renderizar lista de destinos filtrados */}
                         {filteredDestinations.length > 0 ? (
                             filteredDestinations.map((item) => (
                                 <div className="col-lg-3 col-md-6 align-self-center mb-30 trending-items col-md-6" key={item.id}>

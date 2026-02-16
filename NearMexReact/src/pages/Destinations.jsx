@@ -1,23 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { destinations } from '../data/destinations';
+import api from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 
+/**
+ * Página de Detalle del Destino.
+ * Muestra información completa de un destino, incluyendo mapa (placeholder) y sistema de reseñas
+ */
 const Destinations = () => {
     const { id } = useParams();
+    const { user } = useContext(AuthContext);
     const [destination, setDestination] = useState(null);
     const [isFavorite, setIsFavorite] = useState(false);
     const [reviews, setReviews] = useState([]);
+    const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
+    const [editingReview, setEditingReview] = useState(null);
 
+    // Efecto para cargar datos del destino y verificar si es favorito al cambiar el ID
     useEffect(() => {
         const found = destinations.find(d => d.id === id);
         setDestination(found);
-        if (found) {
-            setReviews(found.reviews || []);
-        }
+
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         setIsFavorite(favorites.includes(id));
+
+        fetchReviews();
     }, [id]);
 
+    // Función para obtener reseñas desde el servidor
+    const fetchReviews = async () => {
+        try {
+            const response = await api.get(`/reviews/${id}`);
+            setReviews(response.data);
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+        }
+    };
+
+    // Maneja la acción de agregar/quitar favoritos (ahorita solo en localStorage)
     const toggleFavorite = () => {
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         let newFavorites;
@@ -28,6 +49,50 @@ const Destinations = () => {
         }
         localStorage.setItem('favorites', JSON.stringify(newFavorites));
         setIsFavorite(!isFavorite);
+    };
+
+    // Envía una nueva reseña al servidor
+    const handleSubmitReview = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post('/reviews', {
+                destinationId: id,
+                rating: newReview.rating,
+                comment: newReview.comment
+            });
+            setNewReview({ rating: 5, comment: '' });
+            fetchReviews();
+        } catch (error) {
+            alert('Error al enviar reseña');
+        }
+    };
+
+    // Actualiza una reseña existente en el servidor
+    const handleUpdateReview = async (e) => {
+        e.preventDefault();
+        try {
+            await api.put(`/reviews/${editingReview.id}`, {
+                rating: newReview.rating,
+                comment: newReview.comment
+            });
+            setEditingReview(null);
+            setNewReview({ rating: 5, comment: '' });
+            fetchReviews();
+        } catch (error) {
+            alert('Error al actualizar reseña');
+        }
+    };
+
+    // Elimina una reseña del servidor
+    const handleDeleteReview = async (reviewId) => {
+        if (window.confirm('¿Estás seguro de eliminar esta reseña?')) {
+            try {
+                await api.delete(`/reviews/${reviewId}`);
+                fetchReviews();
+            } catch (error) {
+                alert('Error al eliminar reseña');
+            }
+        }
     };
 
     if (!destination) {
@@ -129,12 +194,115 @@ const Destinations = () => {
                                             <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Mapa próximamente</div>
                                         </div>
                                         <div className="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                                            {user && !editingReview && (
+                                                <div className="mb-4">
+                                                    <h5>Escribe una reseña</h5>
+                                                    <form onSubmit={handleSubmitReview}>
+                                                        <div className="mb-3">
+                                                            <label>Calificación:</label>
+                                                            <select
+                                                                className="form-control"
+                                                                value={newReview.rating}
+                                                                onChange={(e) => setNewReview({ ...newReview, rating: e.target.value })}
+                                                            >
+                                                                <option value="5">5 - Excelente</option>
+                                                                <option value="4">4 - Muy bueno</option>
+                                                                <option value="3">3 - Bueno</option>
+                                                                <option value="2">2 - Regular</option>
+                                                                <option value="1">1 - Malo</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="mb-3">
+                                                            <textarea
+                                                                className="form-control"
+                                                                placeholder="Escribe tu opinión..."
+                                                                value={newReview.comment}
+                                                                onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                                                                required
+                                                            ></textarea>
+                                                        </div>
+                                                        <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#660000', borderColor: '#660000' }}>Enviar Reseña</button>
+                                                    </form>
+                                                    <hr />
+                                                </div>
+                                            )}
+
                                             {reviews.length > 0 ? (
-                                                reviews.map((review, index) => (
-                                                    <p key={index}><strong>{review.user}</strong>: {review.text}<br /><br /></p>
+                                                reviews.map((review) => (
+                                                    <div key={review.id} className="mb-4 p-3 shadow-sm rounded bg-light" style={{ position: 'relative' }}>
+                                                        <div className="d-flex justify-content-between align-items-center mb-2">
+                                                            <div>
+                                                                <strong style={{ fontSize: '1.1em' }}>{review.username}</strong>
+                                                                <span className="text-warning ms-2">{'★'.repeat(review.rating)}</span>
+                                                            </div>
+                                                            {user && user.userId === review.user_id && (
+                                                                <div>
+                                                                    <button
+                                                                        className="btn btn-link p-0 me-2"
+                                                                        onClick={() => {
+                                                                            setEditingReview(review);
+                                                                            setNewReview({ rating: review.rating, comment: review.comment });
+                                                                        }}
+                                                                        style={{ color: '#660000' }}
+                                                                    >
+                                                                        <i className="fa fa-pencil"></i>
+                                                                    </button>
+                                                                    <button
+                                                                        className="btn btn-link p-0"
+                                                                        onClick={() => handleDeleteReview(review.id)}
+                                                                        style={{ color: '#ee626b' }}
+                                                                    >
+                                                                        <i className="fa fa-trash"></i>
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {editingReview && editingReview.id === review.id ? (
+                                                            <form onSubmit={handleUpdateReview}>
+                                                                <div className="mb-2">
+                                                                    <select
+                                                                        className="form-control mb-2"
+                                                                        value={newReview.rating}
+                                                                        onChange={(e) => setNewReview({ ...newReview, rating: e.target.value })}
+                                                                    >
+                                                                        <option value="5">5 - Excelente</option>
+                                                                        <option value="4">4 - Muy bueno</option>
+                                                                        <option value="3">3 - Bueno</option>
+                                                                        <option value="2">2 - Regular</option>
+                                                                        <option value="1">1 - Malo</option>
+                                                                    </select>
+                                                                    <textarea
+                                                                        className="form-control mb-2"
+                                                                        value={newReview.comment}
+                                                                        onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                                                                        required
+                                                                    ></textarea>
+                                                                    <button type="submit" className="btn btn-primary btn-sm me-2" style={{ backgroundColor: '#660000', borderColor: '#660000' }}>Guardar</button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-secondary btn-sm"
+                                                                        onClick={() => {
+                                                                            setEditingReview(null);
+                                                                            setNewReview({ rating: 5, comment: '' });
+                                                                        }}
+                                                                    >
+                                                                        Cancelar
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        ) : (
+                                                            <p style={{ margin: 0 }}>{review.comment}</p>
+                                                        )}
+                                                    </div>
                                                 ))
                                             ) : (
-                                                <p>No hay reseñas aún.</p>
+                                                <p>No hay reseñas aún. ¡Sé el primero en opinar!</p>
+                                            )}
+                                            {!user && (
+                                                <div className="alert" style={{ backgroundColor: 'rgba(102, 0, 0, 0.1)', color: '#660000', borderColor: '#660000' }}>
+                                                    <Link to="/login" style={{ color: '#660000', fontWeight: 'bold' }}>Inicia sesión</Link> para escribir una reseña.
+                                                </div>
                                             )}
                                         </div>
                                     </div>

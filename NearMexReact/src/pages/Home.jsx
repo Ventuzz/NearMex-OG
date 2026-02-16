@@ -2,9 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { destinations } from '../data/destinations';
 
+/**
+ * Página de Inicio.
+ * Muestra el banner principal y secciones destacadas.
+ */
 const Home = () => {
     return (
         <>
+            {/* Sección del Banner Principal */}
             <div className="main-banner">
                 <div className="container">
                     <div className="row">
@@ -15,7 +20,7 @@ const Home = () => {
                                 <p style={{ fontSize: '22px' }}>NearMex es tu plataforma confiable para descubrir destinos increíbles y experiencias únicas. Explora y disfruta de tus próximas aventuras con nosotros.</p>
                                 <div className="search-input">
                                     <div className="main-button">
-                                        <a href="#!" onClick={(e) => e.preventDefault()}>Registrate para acceder a todas las funciones</a>
+                                        <Link to="/register">Registrate para acceder a todas las funciones</Link>
                                     </div>
                                 </div>
                             </div>
@@ -28,6 +33,8 @@ const Home = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Sección de Destinos en Tendencia */}
             <div className="section trending">
                 <div className="container">
                     <div className="row">
@@ -42,6 +49,7 @@ const Home = () => {
                                 <Link to="/catalog">Ver más</Link>
                             </div>
                         </div>
+                        {/* Renderizar los primeros 4 destinos como destacados */}
                         {destinations.slice(0, 4).map((item) => (
                             <div className="col-lg-3 col-md-6" key={item.id}>
                                 <div className="item">
