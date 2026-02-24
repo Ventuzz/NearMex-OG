@@ -29,6 +29,29 @@ exports.getReviews = async (req, res) => {
 };
 
 /**
+ * Obtiene todas las reseñas creadas por un usuario específico (el autenticado).
+ * Incluye también la información de qué destino es.
+ */
+exports.getUserReviews = async (req, res) => {
+    const userId = req.user.userId;
+
+    try {
+        const [reviews] = await db.execute(
+            `SELECT r.*, d.name as destination_name
+             FROM reviews r 
+             JOIN destinations d ON r.destination_id = d.id
+             WHERE r.user_id = ? 
+             ORDER BY r.created_at DESC`,
+            [userId]
+        );
+        res.json(reviews);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error al obtener reseñas del usuario' });
+    }
+};
+
+/**
  * Crea una nueva reseña para un destino.
  */
 exports.createReview = async (req, res) => {

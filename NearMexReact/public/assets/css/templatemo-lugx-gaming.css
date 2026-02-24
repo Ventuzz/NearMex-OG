@@ -190,7 +190,7 @@ body {
 }
 
 .section {
-  margin-top: 120px;
+  margin-top: 60px;
 }
 
 .section-heading {
@@ -1270,7 +1270,7 @@ Page Header Style
   background-position: center bottom;
   background-repeat: no-repeat;
   background-size: cover;
-  padding: 200px 0px 100px 0px;
+  padding: 200px 0px 30px 0px;
   text-align: center;
 }
 
@@ -1818,3 +1818,9 @@ body {
 }
 
 @media (max-width: 1200px) {}
+
+/* SweetAlert2 Scrollbar Fix */
+body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
+  padding-right: 0px !important;
+  overflow-y: scroll !important;
+}

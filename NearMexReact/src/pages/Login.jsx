@@ -1,4 +1,7 @@
 import React, { useState, useContext } from 'react';
+import Swal from 'sweetalert2';
+import api from '../services/api';
+import PageTransition from '../components/common/PageTransition';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
@@ -26,7 +29,7 @@ const Login = () => {
     };
 
     return (
-        <>
+        <PageTransition>
             <div className="page-heading header-text">
                 <div className="container">
                     <div className="row">
@@ -75,7 +78,7 @@ const Login = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </PageTransition>
     );
 };
 

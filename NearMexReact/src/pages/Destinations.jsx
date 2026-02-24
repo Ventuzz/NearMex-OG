@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { destinations } from '../data/destinations';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import PageTransition from '../components/common/PageTransition';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 
@@ -11,20 +13,67 @@ import { AuthContext } from '../context/AuthContext';
 const Destinations = () => {
     const { id } = useParams();
     const { user } = useContext(AuthContext);
+    const navigate = useNavigate();
     const [destination, setDestination] = useState(null);
+    const [relatedDestinations, setRelatedDestinations] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [isFavorite, setIsFavorite] = useState(false);
     const [reviews, setReviews] = useState([]);
     const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
     const [editingReview, setEditingReview] = useState(null);
+    const [activeTab, setActiveTab] = useState('map');
+
+    const handleDestinationClick = (e, destinationId) => {
+        if (!user) {
+            e.preventDefault();
+            Swal.fire({
+                title: '¡Inicia sesión!',
+                text: 'Por favor, regístrate o inicia sesión para acceder a todas las funciones y ver los detalles de los destinos.',
+                icon: 'info',
+                iconColor: '#8f030c',
+                showCancelButton: true,
+                confirmButtonColor: '#8f030c',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ir a Registrarse / Iniciar Sesión',
+                cancelButtonText: 'Cancelar',
+                returnFocus: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    navigate('/register');
+                }
+            });
+        } else {
+            // Scroll suave hacia arriba cuando navega
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
 
     // Efecto para cargar datos del destino y verificar si es favorito al cambiar el ID
     useEffect(() => {
-        const found = destinations.find(d => d.id === id);
-        setDestination(found);
+        const fetchDestinationData = async () => {
+            setLoading(true);
+            try {
+                // Fetch destination details
+                const destResponse = await api.get(`/destinations/${id}`);
+                setDestination(destResponse.data);
+
+                // Fetch all destinations to pick related ones
+                const allResponse = await api.get('/destinations');
+                const related = allResponse.data.filter(d => d.id !== id).slice(0, 4);
+                setRelatedDestinations(related);
+
+            } catch (error) {
+                console.error("Error fetching destination data:", error);
+                setDestination(null);
+            } finally {
+                setLoading(false);
+            }
+        };
 
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         setIsFavorite(favorites.includes(id));
 
+        fetchDestinationData();
         fetchReviews();
     }, [id]);
 
@@ -51,65 +100,154 @@ const Destinations = () => {
         setIsFavorite(!isFavorite);
     };
 
-    // Envía una nueva reseña al servidor
+    // Envía una nueva reseña al servidor con confirmación
     const handleSubmitReview = async (e) => {
         e.preventDefault();
-        try {
-            await api.post('/reviews', {
-                destinationId: id,
-                rating: newReview.rating,
-                comment: newReview.comment
-            });
-            setNewReview({ rating: 5, comment: '' });
-            fetchReviews();
-        } catch (error) {
-            alert('Error al enviar reseña');
-        }
+
+        Swal.fire({
+            title: '¿Enviar reseña?',
+            text: 'Tu opinión será visible para otros viajeros.',
+            icon: 'question',
+            iconColor: '#660000',
+            showCancelButton: true,
+            confirmButtonColor: '#660000',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, enviar',
+            cancelButtonText: 'Cancelar',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await api.post('/reviews', {
+                        destinationId: id,
+                        rating: newReview.rating,
+                        comment: newReview.comment
+                    });
+                    setNewReview({ rating: 5, comment: '' });
+                    fetchReviews();
+                    Swal.fire({
+                        title: '¡Reseña enviada!',
+                        text: 'Gracias por compartir tu experiencia.',
+                        icon: 'success',
+                        iconColor: '#660000',
+                        confirmButtonColor: '#660000'
+                    });
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Hubo un problema al enviar tu reseña.',
+                        icon: 'error',
+                        confirmButtonColor: '#660000'
+                    });
+                }
+            }
+        });
     };
 
     // Actualiza una reseña existente en el servidor
     const handleUpdateReview = async (e) => {
         e.preventDefault();
-        try {
-            await api.put(`/reviews/${editingReview.id}`, {
-                rating: newReview.rating,
-                comment: newReview.comment
-            });
-            setEditingReview(null);
-            setNewReview({ rating: 5, comment: '' });
-            fetchReviews();
-        } catch (error) {
-            alert('Error al actualizar reseña');
-        }
+
+        Swal.fire({
+            title: '¿Guardar cambios?',
+            text: 'Tu reseña será actualizada con la nueva información.',
+            icon: 'question',
+            iconColor: '#660000',
+            showCancelButton: true,
+            confirmButtonColor: '#660000',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, guardar',
+            cancelButtonText: 'Cancelar',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await api.put(`/reviews/${editingReview.id}`, {
+                        rating: newReview.rating,
+                        comment: newReview.comment
+                    });
+                    setEditingReview(null);
+                    setNewReview({ rating: 5, comment: '' });
+                    fetchReviews();
+                    Swal.fire({
+                        title: '¡Actualizada!',
+                        text: 'Tu reseña ha sido modificada correctamente.',
+                        icon: 'success',
+                        iconColor: '#660000',
+                        confirmButtonColor: '#660000'
+                    });
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Hubo un problema al actualizar tu reseña.',
+                        icon: 'error',
+                        confirmButtonColor: '#660000'
+                    });
+                }
+            }
+        });
     };
 
     // Elimina una reseña del servidor
     const handleDeleteReview = async (reviewId) => {
-        if (window.confirm('¿Estás seguro de eliminar esta reseña?')) {
-            try {
-                await api.delete(`/reviews/${reviewId}`);
-                fetchReviews();
-            } catch (error) {
-                alert('Error al eliminar reseña');
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "No podrás revertir esta acción de eliminar la reseña.",
+            icon: 'warning',
+            iconColor: '#660000',
+            showCancelButton: true,
+            confirmButtonColor: '#660000',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            returnFocus: false
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await api.delete(`/reviews/${reviewId}`);
+                    fetchReviews();
+                    Swal.fire({
+                        title: '¡Eliminada!',
+                        text: 'Tu reseña ha sido eliminada.',
+                        icon: 'success',
+                        iconColor: '#660000',
+                        confirmButtonColor: '#660000',
+                        returnFocus: false
+                    });
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Hubo un error al eliminar la reseña.',
+                        icon: 'error',
+                        confirmButtonColor: '#660000',
+                        returnFocus: false
+                    });
+                }
             }
-        }
+        });
     };
 
-    if (!destination) {
+    if (loading) {
         return (
-            <div className="container" style={{ marginTop: '150px', textAlign: 'center' }}>
-                <h2>Destino no encontrado</h2>
-                <Link to="/catalog" className="btn btn-primary mt-3">Volver al Catálogo</Link>
-            </div>
+            <PageTransition>
+                <div className="container" style={{ marginTop: '150px', textAlign: 'center' }}>
+                    <h2>Cargando destino...</h2>
+                </div>
+            </PageTransition>
         );
     }
 
-    const relatedDestinations = destinations
-        .filter(d => d.id !== id)
-        .slice(0, 4);
+    if (!destination) {
+        return (
+            <PageTransition>
+                <div className="container" style={{ marginTop: '150px', textAlign: 'center' }}>
+                    <h2>Destino no encontrado</h2>
+                    <Link to="/catalog" className="btn btn-primary mt-3">Volver al Catálogo</Link>
+                </div>
+            </PageTransition>
+        );
+    }
 
     return (
-        <>
+        <PageTransition>
             <div className="page-heading header-text">
                 <div className="container">
                     <div className="row">
@@ -144,7 +282,13 @@ const Destinations = () => {
                                     ))}
                                 </span>
                             </div>
-                            <p style={{ fontSize: '20px' }}>{destination.description}</p>
+                            <p style={{ fontSize: '20px', marginBottom: '15px' }}>{destination.description}</p>
+                            {destination.schedule && (
+                                <div style={{ fontSize: '18px', color: '#666', marginBottom: '30px', display: 'flex', alignItems: 'center', marginLeft: '-6px' }}>
+                                    <i className="fa fa-clock-o" style={{ color: '#660000', marginRight: '8px', fontSize: '20px' }}></i>
+                                    <span><strong>Horarios:</strong> {destination.schedule}</span>
+                                </div>
+                            )}
 
                             <div className="main-button">
                                 <button
@@ -182,87 +326,57 @@ const Destinations = () => {
                                     <div className="nav-wrapper ">
                                         <ul className="nav nav-tabs" role="tablist">
                                             <li className="nav-item" role="presentation">
-                                                <button className="nav-link active" id="map-tab" data-bs-toggle="tab" data-bs-target="#map" type="button" role="tab" aria-controls="map" aria-selected="true">Mapa</button>
+                                                <button className={`nav-link ${activeTab === 'map' ? 'active' : ''}`} onClick={() => setActiveTab('map')} type="button" role="tab">Mapa</button>
                                             </li>
                                             <li className="nav-item" role="presentation">
-                                                <button className="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">Reseñas ({reviews.length})</button>
+                                                <button className={`nav-link ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')} type="button" role="tab">Reseñas ({reviews.length})</button>
                                             </li>
                                         </ul>
                                     </div>
-                                    <div className="tab-content" id="myTabContent">
-                                        <div className="tab-pane fade show active" id="map" role="tabpanel" aria-labelledby="map-tab">
-                                            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Mapa próximamente</div>
-                                        </div>
-                                        <div className="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
-                                            {user && !editingReview && (
-                                                <div className="mb-4">
-                                                    <h5>Escribe una reseña</h5>
-                                                    <form onSubmit={handleSubmitReview}>
-                                                        <div className="mb-3">
-                                                            <label>Calificación:</label>
-                                                            <select
-                                                                className="form-control"
-                                                                value={newReview.rating}
-                                                                onChange={(e) => setNewReview({ ...newReview, rating: e.target.value })}
-                                                            >
-                                                                <option value="5">5 - Excelente</option>
-                                                                <option value="4">4 - Muy bueno</option>
-                                                                <option value="3">3 - Bueno</option>
-                                                                <option value="2">2 - Regular</option>
-                                                                <option value="1">1 - Malo</option>
-                                                            </select>
-                                                        </div>
-                                                        <div className="mb-3">
-                                                            <textarea
-                                                                className="form-control"
-                                                                placeholder="Escribe tu opinión..."
-                                                                value={newReview.comment}
-                                                                onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                                                                required
-                                                            ></textarea>
-                                                        </div>
-                                                        <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#660000', borderColor: '#660000' }}>Enviar Reseña</button>
-                                                    </form>
-                                                    <hr />
-                                                </div>
+                                    <div className="tab-content" id="myTabContent" style={{ overflow: 'hidden', position: 'relative', minHeight: '400px' }}>
+                                        <AnimatePresence mode="wait">
+                                            {activeTab === 'map' && (
+                                                <motion.div
+                                                    key="map"
+                                                    initial={{ opacity: 0, x: -30 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: 30 }}
+                                                    transition={{ duration: 0.3 }}
+                                                    className="tab-pane show active"
+                                                    style={{ display: 'block' }}
+                                                >
+                                                    <div style={{ width: '100%', height: '400px', borderRadius: '15px', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                                                        <iframe
+                                                            title={`Mapa de ${destination.name}`}
+                                                            width="100%"
+                                                            height="100%"
+                                                            style={{ border: 0 }}
+                                                            loading="lazy"
+                                                            allowFullScreen
+                                                            referrerPolicy="no-referrer-when-downgrade"
+                                                            src={destination.map_url || `https://maps.google.com/maps?q=${encodeURIComponent(destination.category + ' ' + (destination.fullName || destination.name) + ', Guadalajara, Jalisco, Mexico')}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                                                        ></iframe>
+                                                    </div>
+                                                </motion.div>
                                             )}
-
-                                            {reviews.length > 0 ? (
-                                                reviews.map((review) => (
-                                                    <div key={review.id} className="mb-4 p-3 shadow-sm rounded bg-light" style={{ position: 'relative' }}>
-                                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                                            <div>
-                                                                <strong style={{ fontSize: '1.1em' }}>{review.username}</strong>
-                                                                <span className="text-warning ms-2">{'★'.repeat(review.rating)}</span>
-                                                            </div>
-                                                            {user && user.userId === review.user_id && (
-                                                                <div>
-                                                                    <button
-                                                                        className="btn btn-link p-0 me-2"
-                                                                        onClick={() => {
-                                                                            setEditingReview(review);
-                                                                            setNewReview({ rating: review.rating, comment: review.comment });
-                                                                        }}
-                                                                        style={{ color: '#660000' }}
-                                                                    >
-                                                                        <i className="fa fa-pencil"></i>
-                                                                    </button>
-                                                                    <button
-                                                                        className="btn btn-link p-0"
-                                                                        onClick={() => handleDeleteReview(review.id)}
-                                                                        style={{ color: '#ee626b' }}
-                                                                    >
-                                                                        <i className="fa fa-trash"></i>
-                                                                    </button>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        {editingReview && editingReview.id === review.id ? (
-                                                            <form onSubmit={handleUpdateReview}>
-                                                                <div className="mb-2">
+                                            {activeTab === 'reviews' && (
+                                                <motion.div
+                                                    key="reviews"
+                                                    initial={{ opacity: 0, x: 30 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: -30 }}
+                                                    transition={{ duration: 0.3 }}
+                                                    className="tab-pane show active"
+                                                    style={{ display: 'block' }}
+                                                >
+                                                    {user && !editingReview && (
+                                                        <div className="mb-4">
+                                                            <h5>Escribe una reseña</h5>
+                                                            <form onSubmit={handleSubmitReview}>
+                                                                <div className="mb-3">
+                                                                    <label>Calificación:</label>
                                                                     <select
-                                                                        className="form-control mb-2"
+                                                                        className="form-control"
                                                                         value={newReview.rating}
                                                                         onChange={(e) => setNewReview({ ...newReview, rating: e.target.value })}
                                                                     >
@@ -272,39 +386,102 @@ const Destinations = () => {
                                                                         <option value="2">2 - Regular</option>
                                                                         <option value="1">1 - Malo</option>
                                                                     </select>
+                                                                </div>
+                                                                <div className="mb-3">
                                                                     <textarea
-                                                                        className="form-control mb-2"
+                                                                        className="form-control"
+                                                                        placeholder="Escribe tu opinión..."
                                                                         value={newReview.comment}
                                                                         onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
                                                                         required
                                                                     ></textarea>
-                                                                    <button type="submit" className="btn btn-primary btn-sm me-2" style={{ backgroundColor: '#660000', borderColor: '#660000' }}>Guardar</button>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="btn btn-secondary btn-sm"
-                                                                        onClick={() => {
-                                                                            setEditingReview(null);
-                                                                            setNewReview({ rating: 5, comment: '' });
-                                                                        }}
-                                                                    >
-                                                                        Cancelar
-                                                                    </button>
                                                                 </div>
+                                                                <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#660000', borderColor: '#660000' }}>Enviar Reseña</button>
                                                             </form>
-                                                        ) : (
-                                                            <p style={{ margin: 0 }}>{review.comment}</p>
-                                                        )}
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <p>No hay reseñas aún. ¡Sé el primero en opinar!</p>
+                                                            <hr />
+                                                        </div>
+                                                    )}
+
+                                                    {reviews.length > 0 ? (
+                                                        reviews.map((review) => (
+                                                            <div key={review.id} className="mb-4 p-3 shadow-sm rounded bg-light" style={{ position: 'relative' }}>
+                                                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                                                    <div>
+                                                                        <strong style={{ fontSize: '1.1em' }}>{review.username}</strong>
+                                                                        <span className="text-warning ms-2">{'★'.repeat(review.rating)}</span>
+                                                                    </div>
+                                                                    {user && user.userId === review.user_id && (
+                                                                        <div>
+                                                                            <button
+                                                                                className="btn btn-link p-0 me-2"
+                                                                                onClick={() => {
+                                                                                    setEditingReview(review);
+                                                                                    setNewReview({ rating: review.rating, comment: review.comment });
+                                                                                }}
+                                                                                style={{ color: '#660000' }}
+                                                                            >
+                                                                                <i className="fa fa-pencil"></i>
+                                                                            </button>
+                                                                            <button
+                                                                                className="btn btn-link p-0"
+                                                                                onClick={() => handleDeleteReview(review.id)}
+                                                                                style={{ color: '#ee626b' }}
+                                                                            >
+                                                                                <i className="fa fa-trash"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+
+                                                                {editingReview && editingReview.id === review.id ? (
+                                                                    <form onSubmit={handleUpdateReview}>
+                                                                        <div className="mb-2">
+                                                                            <select
+                                                                                className="form-control mb-2"
+                                                                                value={newReview.rating}
+                                                                                onChange={(e) => setNewReview({ ...newReview, rating: e.target.value })}
+                                                                            >
+                                                                                <option value="5">5 - Excelente</option>
+                                                                                <option value="4">4 - Muy bueno</option>
+                                                                                <option value="3">3 - Bueno</option>
+                                                                                <option value="2">2 - Regular</option>
+                                                                                <option value="1">1 - Malo</option>
+                                                                            </select>
+                                                                            <textarea
+                                                                                className="form-control mb-2"
+                                                                                value={newReview.comment}
+                                                                                onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                                                                                required
+                                                                            ></textarea>
+                                                                            <button type="submit" className="btn btn-primary btn-sm me-2" style={{ backgroundColor: '#660000', borderColor: '#660000' }}>Guardar</button>
+                                                                            <button
+                                                                                type="button"
+                                                                                className="btn btn-secondary btn-sm"
+                                                                                onClick={() => {
+                                                                                    setEditingReview(null);
+                                                                                    setNewReview({ rating: 5, comment: '' });
+                                                                                }}
+                                                                            >
+                                                                                Cancelar
+                                                                            </button>
+                                                                        </div>
+                                                                    </form>
+                                                                ) : (
+                                                                    <p style={{ margin: 0 }}>{review.comment}</p>
+                                                                )}
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <p>No hay reseñas aún. ¡Sé el primero en opinar!</p>
+                                                    )}
+                                                    {!user && (
+                                                        <div className="alert" style={{ backgroundColor: 'rgba(102, 0, 0, 0.1)', color: '#660000', borderColor: '#660000' }}>
+                                                            <Link to="/login" style={{ color: '#660000', fontWeight: 'bold' }}>Inicia sesión</Link> para escribir una reseña.
+                                                        </div>
+                                                    )}
+                                                </motion.div>
                                             )}
-                                            {!user && (
-                                                <div className="alert" style={{ backgroundColor: 'rgba(102, 0, 0, 0.1)', color: '#660000', borderColor: '#660000' }}>
-                                                    <Link to="/login" style={{ color: '#660000', fontWeight: 'bold' }}>Inicia sesión</Link> para escribir una reseña.
-                                                </div>
-                                            )}
-                                        </div>
+                                        </AnimatePresence>
                                     </div>
                                 </div>
                             </div>
@@ -324,7 +501,9 @@ const Destinations = () => {
                         </div>
                         <div className="col-lg-6">
                             <div className="main-button">
-                                <Link to="/catalog">Ver Todos</Link>
+                                {user && (
+                                    <Link to="/catalog">Ver Todos</Link>
+                                )}
                             </div>
                         </div>
                         {relatedDestinations.map((item) => (
@@ -332,7 +511,9 @@ const Destinations = () => {
                                 <div className="item">
                                     <h4>{item.category}</h4>
                                     <div className="thumb">
-                                        <Link to={`/destination/${item.id}`}><img src={item.image} alt={item.name} /></Link>
+                                        <Link to={`/destination/${item.id}`} onClick={(e) => handleDestinationClick(e, item.id)}>
+                                            <img src={item.image} alt={item.name} />
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
@@ -340,7 +521,7 @@ const Destinations = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </PageTransition>
     );
 };
 

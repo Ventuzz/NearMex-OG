@@ -58,12 +58,42 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
 
-        // Generar token JWT
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        // Generar token JWT con vigencia de 7 días
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
         res.json({ token, userId: user.id, username: user.username });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error en el servidor' });
+    }
+};
+
+/**
+ * Obtiene el perfil completo del usuario autenticado (incluye bio).
+ */
+exports.getProfile = async (req, res) => {
+    try {
+        const [users] = await db.execute('SELECT id, username, email, bio, created_at FROM users WHERE id = ?', [req.user.userId]);
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+        res.json(users[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error al obtener perfil' });
+    }
+};
+
+/**
+ * Actualiza la biografía del usuario.
+ */
+exports.updateProfile = async (req, res) => {
+    const { bio } = req.body;
+    try {
+        await db.execute('UPDATE users SET bio = ? WHERE id = ?', [bio, req.user.userId]);
+        res.json({ message: 'Perfil actualizado correctamente' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error al actualizar perfil' });
     }
 };

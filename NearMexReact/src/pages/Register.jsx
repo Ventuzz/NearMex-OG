@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import PageTransition from '../components/common/PageTransition';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
@@ -26,7 +27,7 @@ const Register = () => {
     };
 
     return (
-        <>
+        <PageTransition>
             <div className="page-heading header-text">
                 <div className="container">
                     <div className="row">
@@ -85,7 +86,7 @@ const Register = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </PageTransition>
     );
 };
 

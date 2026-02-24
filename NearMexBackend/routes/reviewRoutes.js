@@ -1,8 +1,10 @@
 const express = require('express');
-const { getReviews, createReview, updateReview, deleteReview } = require('../controllers/reviewController');
+const { getReviews, getUserReviews, createReview, updateReview, deleteReview } = require('../controllers/reviewController');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
+// Rutas específicas primero para evitar conflictos de parámetros
+router.get('/user', authMiddleware, getUserReviews);
 router.get('/:destinationId', getReviews);
 router.post('/', authMiddleware, createReview);
 router.put('/:id', authMiddleware, updateReview);

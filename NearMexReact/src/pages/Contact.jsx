@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import PageTransition from '../components/common/PageTransition';
 
 /**
  * Página de Contacto / Sobre Nosotros.
@@ -8,7 +9,7 @@ import { Link } from 'react-router-dom';
  */
 const Contact = () => {
     return (
-        <>
+        <PageTransition>
             <div className="page-heading header-text">
                 <div className="container">
                     <div className="row">
@@ -114,7 +115,7 @@ const Contact = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </PageTransition>
     );
 };
 
