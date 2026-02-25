@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import PageTransition from '../components/common/PageTransition';
 import api from '../services/api';
+import PageTransition from '../components/common/PageTransition';
 import { AuthContext } from '../context/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * Página del Catálogo de Destinos.
@@ -12,6 +13,7 @@ import { AuthContext } from '../context/AuthContext';
 const Catalog = () => {
     const { user } = useContext(AuthContext);
     const location = useLocation();
+    const navigate = useNavigate();
     const [destinations, setDestinations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filteredDestinations, setFilteredDestinations] = useState([]);
@@ -70,11 +72,9 @@ const Catalog = () => {
         setActiveFilter(category);
     };
 
-    // Handler for destination click (if needed, otherwise can be removed)
-    const handleDestinationClick = (e, id) => {
-        // Optional: Add any specific logic for when a destination link is clicked
-        // e.preventDefault(); // Uncomment to prevent default navigation
-        // console.log(`Navigating to destination with ID: ${id}`);
+    // Handler for destination click
+    const handleDestinationClick = (id) => {
+        navigate(`/destination/${id}`);
     };
 
     return (
@@ -99,7 +99,7 @@ const Catalog = () => {
                                 <input
                                     type="text"
                                     className="form-control"
-                                    placeholder="Buscar por nombre, categoría o etiqueta..."
+                                    placeholder="Buscar destinos, categorías o tipo de lugar..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     style={{
@@ -118,7 +118,7 @@ const Catalog = () => {
                     {/* Menú de filtros por categoría */}
                     <ul className="trending-filter">
                         <li>
-                            <a className={activeFilter === 'Mostrar Todo' ? 'is_active' : ''} href="#!" onClick={() => handleFilter('Mostrar Todo')}>Todos</a>
+                            <a className={activeFilter === 'Mostrar Todo' ? 'is_active' : ''} href="#!" onClick={() => handleFilter('Mostrar Todo')}>Mostrar Todo</a>
                         </li>
                         <li>
                             <a className={activeFilter === 'Religioso' ? 'is_active' : ''} href="#!" onClick={() => handleFilter('Religioso')}>Religioso</a>
@@ -140,27 +140,56 @@ const Catalog = () => {
                     <div className="row trending-box">
                         {loading ? (
                             <div className="col-12 text-center" style={{ margin: '40px 0' }}>
-                                <p>Cargando catálogo de destinos...</p>
+                                <p>Cargando destinos...</p>
                             </div>
                         ) : filteredDestinations.length > 0 ? (
-                            filteredDestinations.map(item => (
-                                <div className="col-lg-3 col-md-6 align-self-center mb-4" key={item.id}>
-                                    <div className="item">
-                                        <div className="thumb">
-                                            <Link to={`/destination/${item.id}`} onClick={(e) => handleDestinationClick(e, item.id)}>
-                                                <img src={item.image} alt={item.name} style={{ width: '100%', borderRadius: '15px' }} />
-                                            </Link>
+                            <AnimatePresence>
+                                {filteredDestinations.map((item, index) => (
+                                    <motion.div
+                                        className="col-lg-3 col-md-6 align-self-center mb-4"
+                                        key={item.id}
+                                        layout
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        transition={{ duration: 0.4, delay: index * 0.05 }}
+                                    >
+                                        <div
+                                            className="item"
+                                            onClick={() => handleDestinationClick(item.id)}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <div className="thumb">
+                                                <div>
+                                                    <img src={item.image} alt={item.name} style={{ width: '100%', height: '220px', objectFit: 'cover', borderRadius: '15px' }} />
+                                                </div>
+                                            </div>
+                                            <div className="down-content">
+                                                <span className="category">{item.category}</span>
+                                                <h4 style={{ whiteSpace: 'nowrap', overflow: 'hidden', paddingRight: '45px' }}>{item.name}</h4>
+                                                <div style={{
+                                                    backgroundColor: '#660000',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    width: '40px',
+                                                    height: '40px',
+                                                    borderRadius: '50%',
+                                                    color: '#fff',
+                                                    position: 'absolute',
+                                                    right: '15px',
+                                                    bottom: '30px',
+                                                    transition: 'all 0.3s'
+                                                }} className="catalog-arrow"
+                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8f030c'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#660000'}>
+                                                    <i className="fa fa-arrow-right"></i>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="down-content">
-                                            <span className="category">{item.category}</span>
-                                            <h4>{item.name}</h4>
-                                            <Link to={`/destination/${item.id}`} onClick={(e) => handleDestinationClick(e, item.id)}>
-                                                <i className="fa fa-arrow-right"></i>
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
                         ) : (
                             <div className="col-lg-12">
                                 <p className="text-center">No se encontraron destinos que coincidan con tu búsqueda.</p>

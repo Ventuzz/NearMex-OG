@@ -43,7 +43,7 @@ const Register = () => {
                     <div className="col-md-6">
                         <div className="card shadow">
                             <div className="card-body">
-                                <h2 className="text-center mb-4">Crear Cuenta</h2>
+                                <h2 className="text-center mb-4">Registro</h2>
                                 {error && <div className="alert alert-danger">{error}</div>}
                                 <form onSubmit={handleSubmit}>
                                     <div className="mb-3">
@@ -57,7 +57,7 @@ const Register = () => {
                                         />
                                     </div>
                                     <div className="mb-3">
-                                        <label>Email</label>
+                                        <label>Correo Electrónico</label>
                                         <input
                                             type="email"
                                             className="form-control"
@@ -79,7 +79,7 @@ const Register = () => {
                                     <button type="submit" className="btn w-100 btn-theme">Registrarse</button>
                                 </form>
                                 <div className="mt-3 text-center">
-                                    <p>¿Ya tienes cuenta? <Link to="/login" style={{ color: '#660000', fontWeight: 'bold' }}>Inicia sesión aquí</Link></p>
+                                    <p>¿Ya tienes una cuenta? <Link to="/login" style={{ color: '#660000', fontWeight: 'bold' }}>Inicia sesión</Link></p>
                                 </div>
                             </div>
                         </div>

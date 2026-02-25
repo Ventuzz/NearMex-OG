@@ -9,10 +9,11 @@ import Contact from './pages/Contact';
 import Profile from './pages/Profile';
 
 import { AuthProvider, AuthContext } from './context/AuthContext';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
+import Nearby from './pages/Nearby';
 
 // Componente para proteger las rutas de administrador
 const AdminRoute = ({ children }) => {
@@ -27,8 +28,26 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+// Componente para proteger las rutas de usuarios regulares (requieren estar registrados)
+const UserRoute = ({ children }) => {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) return null;
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
 function App() {
   const location = useLocation();
+
+  // Desplazar la vista hacia arriba cada vez que cambia la ruta
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <AuthProvider>
@@ -37,6 +56,7 @@ function App() {
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
             <Route path="catalog" element={<Catalog />} />
+            <Route path="nearby" element={<UserRoute><Nearby /></UserRoute>} />
             <Route path="destination/:id" element={<Destinations />} />
             <Route path="contact" element={<Contact />} />
             <Route path="profile" element={<Profile />} />

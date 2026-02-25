@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { AuthContext } from '../context/AuthContext';
 import PageTransition from '../components/common/PageTransition';
+import { motion } from 'framer-motion';
 import api from '../services/api';
 
 /**
@@ -51,6 +52,7 @@ const Home = () => {
             });
         } else {
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            navigate(`/destination/${destinationId}`);
         }
     };
 
@@ -64,23 +66,23 @@ const Home = () => {
                             <div className="caption header-text">
                                 {user ? (
                                     <>
-                                        <h6>Bienvenido de nuevo</h6>
+                                        <h6>Descubre lo mejor de México</h6>
                                         <h2>¡Hola, {user.username}!</h2>
-                                        <p style={{ fontSize: '22px' }}>¿Listo para tu próxima aventura? Explora nuestro catálogo y descubre los rincones más increíbles que tenemos para ti.</p>
+                                        <p style={{ fontSize: '22px' }}>Busca tu próximo destino o explora nuestras recomendaciones.</p>
                                         <div className="search-input">
                                             <div className="main-button">
-                                                <Link to="/catalog">Ir al Catálogo</Link>
+                                                <Link to="/catalog">encontrar destinos</Link>
                                             </div>
                                         </div>
                                     </>
                                 ) : (
                                     <>
-                                        <h6>Descubre tu siguiente destino</h6>
-                                        <h2>¡No puedes perderte esto!</h2>
-                                        <p style={{ fontSize: '22px' }}>NearMex es tu plataforma confiable para descubrir destinos increíbles y experiencias únicas. Explora y disfruta de tus próximas aventuras con nosotros.</p>
+                                        <h6>Encuentra tu próximo destino</h6>
+                                        <h2>Descubre lo mejor de México</h2>
+                                        <p style={{ fontSize: '22px' }}>Busca tu próximo destino o explora nuestras recomendaciones.</p>
                                         <div className="search-input">
                                             <div className="main-button">
-                                                <Link to="/register">Registrate para acceder a todas las funciones</Link>
+                                                <Link to="/register">Regístrate para ver todo</Link>
                                             </div>
                                         </div>
                                     </>
@@ -102,40 +104,65 @@ const Home = () => {
                     <div className="row">
                         <div className="col-lg-6">
                             <div className="section-heading">
-                                <h6>Tendencia</h6>
-                                <h2>Lugares en Tendencia</h2>
+                                <h6>Tendencias</h6>
+                                <h2>Destinos Tendencia</h2>
                             </div>
                         </div>
                         <div className="col-lg-6">
                             <div className="main-button">
                                 {user && (
-                                    <Link to="/catalog">Ver más</Link>
+                                    <Link to="/catalog">Ver todos los destinos</Link>
                                 )}
                             </div>
                         </div>
                         {/* Renderizar los primeros 4 destinos como destacados */}
                         {loading ? (
                             <div className="col-12 text-center" style={{ margin: '40px 0' }}>
-                                <p>Cargando destinos en tendencia...</p>
+                                <p>Cargando destinos...</p>
                             </div>
                         ) : (
-                            destinations.slice(0, 4).map((item) => (
-                                <div className="col-lg-3 col-md-6" key={item.id}>
-                                    <div className="item">
+                            destinations.slice(0, 4).map((item, index) => (
+                                <motion.div
+                                    className="col-lg-3 col-md-6"
+                                    key={item.id}
+                                    initial={{ opacity: 0, y: 40 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: index * 0.12, ease: 'easeOut' }}
+                                >
+                                    <div
+                                        className="item"
+                                        onClick={(e) => handleDestinationClick(e, item.id)}
+                                        style={{ cursor: 'pointer' }}
+                                    >
                                         <div className="thumb">
-                                            <Link to={`/destination/${item.id}`} onClick={(e) => handleDestinationClick(e, item.id)}>
-                                                <img src={item.image} alt={item.name} />
-                                            </Link>
+                                            <div>
+                                                <img src={item.image} alt={item.name} style={{ width: '100%', height: '220px', objectFit: 'cover', borderRadius: '15px' }} />
+                                            </div>
                                         </div>
                                         <div className="down-content">
                                             <span className="category">{item.category}</span>
-                                            <h4>{item.name}</h4>
-                                            <Link to={`/destination/${item.id}`} onClick={(e) => handleDestinationClick(e, item.id)}>
+                                            <h4 style={{ whiteSpace: 'nowrap', overflow: 'hidden', paddingRight: '45px' }}>{item.name}</h4>
+                                            <div style={{
+                                                backgroundColor: '#660000',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                width: '40px',
+                                                height: '40px',
+                                                borderRadius: '50%',
+                                                color: '#fff',
+                                                position: 'absolute',
+                                                right: '15px',
+                                                bottom: '30px',
+                                                transition: 'all 0.3s'
+                                            }} className="catalog-arrow"
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8f030c'}
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#660000'}>
                                                 <i className="fa fa-arrow-right"></i>
-                                            </Link>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </motion.div>
                             ))
                         )}
                     </div>

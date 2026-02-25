@@ -28,13 +28,13 @@ const Destinations = () => {
             e.preventDefault();
             Swal.fire({
                 title: '¡Inicia sesión!',
-                text: 'Por favor, regístrate o inicia sesión para acceder a todas las funciones y ver los detalles de los destinos.',
+                text: 'Debes iniciar sesión para ver los detalles completos, guardar en favoritos o escribir reseñas.',
                 icon: 'info',
                 iconColor: '#8f030c',
                 showCancelButton: true,
                 confirmButtonColor: '#8f030c',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ir a Registrarse / Iniciar Sesión',
+                confirmButtonText: 'Ir a Iniciar Sesión',
                 cancelButtonText: 'Cancelar',
                 returnFocus: false
             }).then((result) => {
@@ -110,7 +110,7 @@ const Destinations = () => {
 
         Swal.fire({
             title: '¿Enviar reseña?',
-            text: 'Tu opinión será visible para otros viajeros.',
+            text: 'Tu reseña será pública para todos los usuarios.',
             icon: 'question',
             iconColor: '#660000',
             showCancelButton: true,
@@ -129,8 +129,8 @@ const Destinations = () => {
                     setNewReview({ rating: 5, comment: '' });
                     fetchReviews();
                     Swal.fire({
-                        title: '¡Reseña enviada!',
-                        text: 'Gracias por compartir tu experiencia.',
+                        title: '¡Enviada!',
+                        text: 'Gracias por tu reseña.',
                         icon: 'success',
                         iconColor: '#660000',
                         confirmButtonColor: '#660000'
@@ -153,7 +153,7 @@ const Destinations = () => {
 
         Swal.fire({
             title: '¿Guardar cambios?',
-            text: 'Tu reseña será actualizada con la nueva información.',
+            text: 'Se actualizará tu reseña anterior.',
             icon: 'question',
             iconColor: '#660000',
             showCancelButton: true,
@@ -172,8 +172,8 @@ const Destinations = () => {
                     setNewReview({ rating: 5, comment: '' });
                     fetchReviews();
                     Swal.fire({
-                        title: '¡Actualizada!',
-                        text: 'Tu reseña ha sido modificada correctamente.',
+                        title: '¡Actualizado!',
+                        text: 'Tu reseña ha sido modificada.',
                         icon: 'success',
                         iconColor: '#660000',
                         confirmButtonColor: '#660000'
@@ -194,7 +194,7 @@ const Destinations = () => {
     const handleDeleteReview = async (reviewId) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "No podrás revertir esta acción de eliminar la reseña.",
+            text: 'Esta acción no se puede deshacer.',
             icon: 'warning',
             iconColor: '#660000',
             showCancelButton: true,
@@ -209,7 +209,7 @@ const Destinations = () => {
                     await api.delete(`/reviews/${reviewId}`);
                     fetchReviews();
                     Swal.fire({
-                        title: '¡Eliminada!',
+                        title: '¡Eliminado!',
                         text: 'Tu reseña ha sido eliminada.',
                         icon: 'success',
                         iconColor: '#660000',
@@ -219,7 +219,7 @@ const Destinations = () => {
                 } catch (error) {
                     Swal.fire({
                         title: 'Error',
-                        text: 'Hubo un error al eliminar la reseña.',
+                        text: 'Hubo un problema al eliminar la reseña.',
                         icon: 'error',
                         confirmButtonColor: '#660000',
                         returnFocus: false
@@ -233,7 +233,7 @@ const Destinations = () => {
         return (
             <PageTransition>
                 <div className="container" style={{ marginTop: '150px', textAlign: 'center' }}>
-                    <h2>Cargando destino...</h2>
+                    <h2>Cargando...</h2>
                 </div>
             </PageTransition>
         );
@@ -277,20 +277,22 @@ const Destinations = () => {
                                 <span style={{ color: '#660000', marginRight: '15px' }}>
                                     Categoría: <Link to="/catalog" state={{ category: destination.category }} style={{ color: '#660000', textDecoration: 'none' }}>{destination.category}</Link>
                                 </span>
-                                <span style={{ color: '#660000' }}>
-                                    Etiquetas: {destination.tags.map((tag, i) => (
-                                        <React.Fragment key={i}>
-                                            <span style={{ color: '#660000' }}>{tag}</span>
-                                            {i < destination.tags.length - 1 ? ', ' : ''}
-                                        </React.Fragment>
-                                    ))}
-                                </span>
+                                {destination.tags && destination.tags.length > 0 && (
+                                    <span style={{ color: '#660000' }}>
+                                        Etiquetas: {destination.tags.map((tag, i) => (
+                                            <React.Fragment key={i}>
+                                                <span style={{ color: '#660000' }}>{tag}</span>
+                                                {i < destination.tags.length - 1 ? ', ' : ''}
+                                            </React.Fragment>
+                                        ))}
+                                    </span>
+                                )}
                             </div>
                             <p style={{ fontSize: '20px', marginBottom: '15px' }}>{destination.description}</p>
                             {destination.schedule && (
                                 <div style={{ fontSize: '18px', color: '#666', marginBottom: '30px', display: 'flex', alignItems: 'center', marginLeft: '-6px' }}>
                                     <i className="fa fa-clock-o" style={{ color: '#660000', marginRight: '8px', fontSize: '20px' }}></i>
-                                    <span><strong>Horarios:</strong> {destination.schedule}</span>
+                                    <span><strong>Horario:</strong> {destination.schedule}</span>
                                 </div>
                             )}
 
@@ -310,7 +312,7 @@ const Destinations = () => {
                                         transition: 'all .3s'
                                     }}
                                 >
-                                    <i className={`fa ${isFavorite ? 'fa-heart' : 'fa-heart-o'}`}></i> {isFavorite ? 'En Favoritos' : 'Agregar a Favoritos'}
+                                    <i className={`fa ${isFavorite ? 'fa-heart' : 'fa-heart-o'}`}></i> {isFavorite ? 'Quitar de Favoritos' : 'Agregar a Favoritos'}
                                 </button>
                             </div>
                         </div>
@@ -391,7 +393,7 @@ const Destinations = () => {
                                                                         onChange={(e) => setNewReview({ ...newReview, rating: e.target.value })}
                                                                     >
                                                                         <option value="5">5 - Excelente</option>
-                                                                        <option value="4">4 - Muy bueno</option>
+                                                                        <option value="4">4 - Muy Bueno</option>
                                                                         <option value="3">3 - Bueno</option>
                                                                         <option value="2">2 - Regular</option>
                                                                         <option value="1">1 - Malo</option>
@@ -400,7 +402,7 @@ const Destinations = () => {
                                                                 <div className="mb-3">
                                                                     <textarea
                                                                         className="form-control"
-                                                                        placeholder="Escribe tu opinión..."
+                                                                        placeholder="Cuéntale a otros sobre tu experiencia (mínimo 10 caracteres)..."
                                                                         value={newReview.comment}
                                                                         onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
                                                                         required
@@ -459,7 +461,7 @@ const Destinations = () => {
                                                                                 onChange={(e) => setNewReview({ ...newReview, rating: e.target.value })}
                                                                             >
                                                                                 <option value="5">5 - Excelente</option>
-                                                                                <option value="4">4 - Muy bueno</option>
+                                                                                <option value="4">4 - Muy Bueno</option>
                                                                                 <option value="3">3 - Bueno</option>
                                                                                 <option value="2">2 - Regular</option>
                                                                                 <option value="1">1 - Malo</option>
@@ -470,7 +472,7 @@ const Destinations = () => {
                                                                                 onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
                                                                                 required
                                                                             ></textarea>
-                                                                            <button type="submit" className="btn btn-primary btn-sm me-2" style={{ backgroundColor: '#660000', borderColor: '#660000' }}>Guardar</button>
+                                                                            <button type="submit" className="btn btn-primary btn-sm me-2" style={{ backgroundColor: '#660000', borderColor: '#660000' }}>Guardar Cambios</button>
                                                                             <button
                                                                                 type="button"
                                                                                 className="btn btn-secondary btn-sm"
@@ -489,11 +491,11 @@ const Destinations = () => {
                                                             </div>
                                                         ))
                                                     ) : (
-                                                        <p>No hay reseñas aún. ¡Sé el primero en opinar!</p>
+                                                        <p>Aún no hay reseñas para este destino. ¡Sé el primero!</p>
                                                     )}
                                                     {!user && (
                                                         <div className="alert" style={{ backgroundColor: 'rgba(102, 0, 0, 0.1)', color: '#660000', borderColor: '#660000' }}>
-                                                            <Link to="/login" style={{ color: '#660000', fontWeight: 'bold' }}>Inicia sesión</Link> para escribir una reseña.
+                                                            Para escribir una reseña necesitas <Link to="/login" style={{ color: '#660000', fontWeight: 'bold' }}>Iniciar Sesión</Link>
                                                         </div>
                                                     )}
                                                 </motion.div>
@@ -512,14 +514,14 @@ const Destinations = () => {
                     <div className="row">
                         <div className="col-lg-6">
                             <div className="section-heading">
-                                <h6>Turismo</h6>
-                                <h2>También te puede interesar</h2>
+                                <h6>Relacionados de la misma categoría</h6>
+                                <h2>También te podría interesar</h2>
                             </div>
                         </div>
                         <div className="col-lg-6">
                             <div className="main-button">
                                 {user && (
-                                    <Link to="/catalog">Ver Todos</Link>
+                                    <Link to="/catalog">Ver todo el catálogo</Link>
                                 )}
                             </div>
                         </div>

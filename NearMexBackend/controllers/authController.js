@@ -61,7 +61,7 @@ exports.login = async (req, res) => {
         // Generar token JWT con vigencia de 7 días
         const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-        res.json({ token, userId: user.id, username: user.username, role: user.role, avatar: user.avatar });
+        res.json({ token, userId: user.id, username: user.username, role: user.role, avatar: user.avatar, address: user.address });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error en el servidor' });

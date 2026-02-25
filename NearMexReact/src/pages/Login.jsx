@@ -53,7 +53,7 @@ const Login = () => {
                                 {error && <div className="alert alert-danger">{error}</div>}
                                 <form onSubmit={handleSubmit}>
                                     <div className="mb-3">
-                                        <label>Email</label>
+                                        <label>Correo Electrónico</label>
                                         <input
                                             type="email"
                                             className="form-control"
@@ -72,10 +72,10 @@ const Login = () => {
                                             required
                                         />
                                     </div>
-                                    <button type="submit" id="login-btn" className="btn w-100 btn-theme" style={{ backgroundColor: '#660000', borderColor: '#660000', color: 'white' }}>Entrar</button>
+                                    <button type="submit" id="login-btn" className="btn w-100 btn-theme" style={{ backgroundColor: '#660000', borderColor: '#660000', color: 'white' }}>Inicia Sesión</button>
                                 </form>
                                 <div className="mt-3 text-center">
-                                    <p>¿No tienes cuenta? <Link to="/register" style={{ color: '#660000', fontWeight: 'bold' }}>Regístrate aquí</Link></p>
+                                    <p>¿No tienes una cuenta? <Link to="/register" style={{ color: '#660000', fontWeight: 'bold' }}>Regístrate aquí</Link></p>
                                 </div>
                             </div>
                         </div>

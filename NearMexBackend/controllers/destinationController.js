@@ -51,13 +51,13 @@ exports.getDestinationById = async (req, res) => {
  * Crea un nuevo destino (Solo Admin)
  */
 exports.createDestination = async (req, res) => {
-    const { id, name, full_name, description, image, category, map_url, schedule, tags } = req.body;
+    const { id, name, full_name, description, image, category, map_url, schedule, tags, latitude, longitude } = req.body;
     try {
         const tagsString = Array.isArray(tags) ? JSON.stringify(tags) : tags;
 
         await db.execute(
-            'INSERT INTO destinations (id, name, full_name, description, image, category, map_url, schedule, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [id || name.toLowerCase().replace(/\s+/g, '-'), name, full_name || '', description, image, category, map_url || '', schedule || '', tagsString || '[]']
+            'INSERT INTO destinations (id, name, full_name, description, image, category, map_url, schedule, tags, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [id || name.toLowerCase().replace(/\s+/g, '-'), name, full_name || '', description, image, category, map_url || '', schedule || '', tagsString || '[]', latitude || null, longitude || null]
         );
         res.status(201).json({ message: 'Destino creado exitosamente' });
     } catch (error) {
@@ -71,13 +71,13 @@ exports.createDestination = async (req, res) => {
  */
 exports.updateDestination = async (req, res) => {
     const { id } = req.params;
-    const { name, full_name, description, image, category, map_url, schedule, tags } = req.body;
+    const { name, full_name, description, image, category, map_url, schedule, tags, latitude, longitude } = req.body;
     try {
         const tagsString = Array.isArray(tags) ? JSON.stringify(tags) : tags;
 
         await db.execute(
-            'UPDATE destinations SET name=?, full_name=?, description=?, image=?, category=?, map_url=?, schedule=?, tags=? WHERE id=?',
-            [name, full_name || '', description, image, category, map_url || '', schedule || '', tagsString, id]
+            'UPDATE destinations SET name=?, full_name=?, description=?, image=?, category=?, map_url=?, schedule=?, tags=?, latitude=?, longitude=? WHERE id=?',
+            [name, full_name || '', description, image, category, map_url || '', schedule || '', tagsString, latitude || null, longitude || null, id]
         );
         res.json({ message: 'Destino actualizado exitosamente' });
     } catch (error) {

@@ -105,7 +105,7 @@ const Profile = () => {
             setIsEditingBio(false);
             Swal.fire({
                 title: '¡Actualizado!',
-                text: 'Tu biografía ha sido guardada.',
+                text: 'Información guardada.',
                 icon: 'success',
                 iconColor: '#660000',
                 confirmButtonColor: '#660000',
@@ -116,7 +116,7 @@ const Profile = () => {
             console.error(e);
             Swal.fire({
                 title: 'Error',
-                text: 'No se pudo actualizar la biografía',
+                text: 'Hubo un problema al guardar tu información.',
                 icon: 'error',
                 confirmButtonColor: '#660000'
             });
@@ -125,13 +125,13 @@ const Profile = () => {
 
     const getCurrentLocation = () => {
         if (!navigator.geolocation) {
-            Swal.fire({ title: 'Error', text: 'Tu navegador no soporta geolocalización', icon: 'error', confirmButtonColor: '#660000' });
+            Swal.fire({ title: 'Error', text: 'Tu navegador no soporta geolocalización.', icon: 'error', confirmButtonColor: '#660000' });
             return;
         }
 
         Swal.fire({
-            title: 'Buscando ubicación...',
-            text: 'Revisa si tu navegador te pide permisos arriba.',
+            title: 'Buscando',
+            text: 'Por favor revisa que tengas permisos de ubicación y espera un momento...',
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
@@ -148,15 +148,15 @@ const Profile = () => {
                     setAddressInput(data.display_name);
                     Swal.close();
                 } else {
-                    Swal.fire({ title: 'Error', text: 'No pudimos traducir las coordenadas', icon: 'error', confirmButtonColor: '#660000' });
+                    Swal.fire({ title: 'Error', text: 'No pudimos traducir tus coordenadas a una dirección legible.', icon: 'error', confirmButtonColor: '#660000' });
                 }
             } catch (error) {
                 console.error("Error fetching address from coordinates", error);
-                Swal.fire({ title: 'Error', text: 'Error al contactar al servidor de mapas', icon: 'error', confirmButtonColor: '#660000' });
+                Swal.fire({ title: 'Error', text: 'Hubo un problema de red al buscar tu dirección.', icon: 'error', confirmButtonColor: '#660000' });
             }
         }, (error) => {
             console.error("Geolocation Error:", error);
-            Swal.fire({ title: 'Aviso', text: 'Permiso denegado, bloqueado, o tardó demasiado.', icon: 'warning', confirmButtonColor: '#660000' });
+            Swal.fire({ title: 'Aviso', text: 'No pudimos obtener tu ubicación. Revisa los permisos de tu navegador o inténtalo en un lugar más despejado.', icon: 'warning', confirmButtonColor: '#660000' });
         }, {
             enableHighAccuracy: true,
             timeout: 10000,
@@ -180,7 +180,7 @@ const Profile = () => {
             console.error('Error fetching user reviews:', error);
             Swal.fire({
                 title: 'Error',
-                text: 'Hubo un problema al cargar tus reseñas.',
+                text: 'Hubo un error al cargar tus reseñas.',
                 icon: 'error',
                 confirmButtonColor: '#660000',
             });
@@ -191,8 +191,8 @@ const Profile = () => {
 
     const removeFavorite = (id) => {
         Swal.fire({
-            title: '¿Quitar de favoritos?',
-            text: "Este destino ya no aparecerá en tu lista.",
+            title: '¿Quitar de Favoritos?',
+            text: 'Este lugar ya no aparecerá en tu lista de favoritos.',
             icon: 'warning',
             iconColor: '#660000',
             showCancelButton: true,
@@ -212,7 +212,7 @@ const Profile = () => {
 
                 Swal.fire({
                     title: '¡Eliminado!',
-                    text: 'El destino ha sido quitado de rus favoritos.',
+                    text: 'Removido de tus favoritos.',
                     icon: 'success',
                     iconColor: '#660000',
                     confirmButtonColor: '#660000'
@@ -239,7 +239,7 @@ const Profile = () => {
                     // Remover de la lista local en vez de hacer otro fetch
                     setReviews(reviews.filter(rev => rev.id !== reviewId));
                     Swal.fire({
-                        title: 'Eliminada',
+                        title: '¡Eliminado!',
                         text: 'Tu reseña ha sido eliminada correctamente.',
                         icon: 'success',
                         iconColor: '#660000',
@@ -249,7 +249,7 @@ const Profile = () => {
                     console.error(err);
                     Swal.fire({
                         title: 'Error',
-                        text: 'No se pudo eliminar la reseña.',
+                        text: 'Hubo un problema al eliminar la reseña.',
                         icon: 'error',
                         confirmButtonColor: '#660000'
                     });
@@ -293,7 +293,7 @@ const Profile = () => {
                 <div className="container">
                     <div className="row">
                         <div className="col-lg-12">
-                            <h3>Mi Perfil</h3>
+                            <h3>Perfil de Usuario</h3>
                         </div>
                     </div>
                 </div>
@@ -309,7 +309,7 @@ const Profile = () => {
                                 className={`list-group-item list-group-item-action ${activeTab === 'info' ? 'active' : ''}`}
                                 style={activeTab === 'info' ? { backgroundColor: '#660000', borderColor: '#660000' } : {}}
                             >
-                                <i className="fa fa-user me-2"></i> Mi Información
+                                <i className="fa fa-user me-2"></i> Información Personal
                             </button>
                             <button
                                 onClick={() => handleTabChange('favorites')}
@@ -345,7 +345,7 @@ const Profile = () => {
                                             exit="exit"
                                             transition={{ y: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
                                         >
-                                            <h4 className="border-bottom pb-2 mb-4">Información de Cuenta</h4>
+                                            <h4 className="border-bottom pb-2 mb-4">Información Personal</h4>
                                             <div className="d-flex align-items-center mb-4">
                                                 <div style={{
                                                     width: '80px',
@@ -373,18 +373,18 @@ const Profile = () => {
                                             </div>
 
                                             <div className="mt-4 pt-3 border-top">
-                                                <h5 className="mb-3">Datos del perfil</h5>
+                                                <h5 className="mb-3">Información Personal</h5>
                                                 {isEditingBio ? (
                                                     <div>
-                                                        <strong>Foto de perfil</strong>
+                                                        <strong>URL de tu Foto (Avatar)</strong>
                                                         <input
                                                             type="text"
                                                             className="form-control mb-3"
-                                                            placeholder="URL de tu Foto de Perfil"
+                                                            placeholder="URL de tu Foto de Perfil (Avatar)"
                                                             value={avatarInput}
                                                             onChange={(e) => setAvatarInput(e.target.value)}
                                                         />
-                                                        <strong>Dirección</strong>
+                                                        <strong>Dirección para Calculadora de Distancias</strong>
                                                         <div className="input-group mb-3">
                                                             <input
                                                                 type="text"
@@ -399,7 +399,7 @@ const Profile = () => {
                                                                 </button>
                                                             </div>
                                                         </div>
-                                                        <strong>Biografía</strong>
+                                                        <strong>Sobre Mí (Biografía)</strong>
                                                         <textarea
                                                             className="form-control mb-3"
                                                             rows="4"
@@ -420,10 +420,10 @@ const Profile = () => {
                                                             </p>
                                                         )}
                                                         <p style={{ whiteSpace: 'pre-wrap', color: profileData?.bio ? '#333' : '#999', fontStyle: profileData?.bio ? 'normal' : 'italic', minHeight: '80px', fontSize: '18px' }}>
-                                                            {profileData?.bio || 'Aún no has escrito una biografía.'}
+                                                            {profileData?.bio || 'Aún no tienes una biografía. ¡Anímate a escribir una!'}
                                                         </p>
                                                         <button onClick={() => setIsEditingBio(true)} className="btn btn-outline-dark btn-sm mt-2">
-                                                            <i className="fa fa-pencil"></i> Editar Perfil
+                                                            <i className="fa fa-pencil"></i> Editar Información
                                                         </button>
                                                     </div>
                                                 )}
@@ -442,9 +442,9 @@ const Profile = () => {
                                             exit="exit"
                                             transition={{ y: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
                                         >
-                                            <h4 className="border-bottom pb-2 mb-4">Mis Destinos Favoritos</h4>
+                                            <h4 className="border-bottom pb-2 mb-4">Mis Favoritos</h4>
                                             {favorites.length === 0 ? (
-                                                <p className="text-muted text-center py-4">No tienes destinos guardados como favoritos.</p>
+                                                <p className="text-muted text-center py-4">No tienes destinos favoritos aún.</p>
                                             ) : (
                                                 <div className="row">
                                                     {favorites.map(item => (
@@ -456,7 +456,7 @@ const Profile = () => {
                                                                     <h5 className="card-title">{item.name}</h5>
                                                                 </div>
                                                                 <div className="card-footer bg-white border-top-0 d-flex justify-content-between">
-                                                                    <button onClick={() => navigate(`/destination/${item.id}`)} className="btn btn-sm btn-outline-dark">Ver Destino</button>
+                                                                    <button onClick={() => navigate(`/destination/${item.id}`)} className="btn btn-sm btn-outline-dark">Ver Detalles</button>
                                                                     <button onClick={() => removeFavorite(item.id)} className="btn btn-sm" style={{ color: '#660000' }}>
                                                                         <i className="fa fa-trash"></i>
                                                                     </button>
@@ -480,11 +480,11 @@ const Profile = () => {
                                             exit="exit"
                                             transition={{ y: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
                                         >
-                                            <h4 className="border-bottom pb-2 mb-4">Reseñas Publicadas</h4>
+                                            <h4 className="border-bottom pb-2 mb-4">Mis Reseñas</h4>
                                             {loadingReviews ? (
-                                                <p className="text-center py-4">Cargando tus reseñas...</p>
+                                                <p className="text-center py-4">Cargando...</p>
                                             ) : reviews.length === 0 ? (
-                                                <p className="text-muted text-center py-4">No has escrito ninguna reseña todavía.</p>
+                                                <p className="text-muted text-center py-4">Aún no has escrito ninguna reseña.</p>
                                             ) : (
                                                 <div className="list-group">
                                                     {reviews.map(review => (

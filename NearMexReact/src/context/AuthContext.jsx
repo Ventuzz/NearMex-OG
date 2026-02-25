@@ -12,14 +12,36 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Efecto para verificar si hay una sesión activa al cargar la aplicación
+    // Efecto para verificar si hay una sesión activa al cargar la aplicación y refrescar datos
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
-        if (token && userData) {
-            setUser(JSON.parse(userData));
-        }
-        setLoading(false);
+        const initAuth = async () => {
+            const token = localStorage.getItem('token');
+            const userData = localStorage.getItem('user');
+
+            if (token && userData) {
+                // Carga inicial rápida desde caché local
+                setUser(JSON.parse(userData));
+
+                // Sincronización silenciosa en segundo plano
+                try {
+                    const response = await api.get('/auth/profile');
+                    const freshUser = {
+                        userId: response.data.id,
+                        username: response.data.username,
+                        role: response.data.role,
+                        avatar: response.data.avatar,
+                        address: response.data.address
+                    };
+                    setUser(freshUser);
+                    localStorage.setItem('user', JSON.stringify(freshUser));
+                } catch (error) {
+                    console.error("Error al sincronizar el perfil con el servidor:", error);
+                }
+            }
+            setLoading(false);
+        };
+
+        initAuth();
     }, []);
 
     /**

@@ -27,7 +27,7 @@ const AdminDashboard = () => {
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
         id: '', name: '', full_name: '', description: '', image: '', category: 'Monumento',
-        map_url: '', schedule: '', tags: ''
+        map_url: '', schedule: '', tags: '', latitude: '', longitude: ''
     });
 
     // Estado de Reseñas
@@ -99,7 +99,7 @@ const AdminDashboard = () => {
     const openCreateForm = () => {
         setFormData({
             id: '', name: '', full_name: '', description: '', image: '', category: 'Monumento',
-            map_url: '', schedule: '', tags: ''
+            map_url: '', schedule: '', tags: '', latitude: '', longitude: ''
         });
         setEditingId(null);
         setShowForm(true);
@@ -316,6 +316,14 @@ const AdminDashboard = () => {
                                                         <div className="col-md-12 mb-3">
                                                             <label className="form-label">URL de Google Maps (Iframe Src)</label>
                                                             <input type="text" className="form-control" name="map_url" value={formData.map_url} onChange={handleInputChange} />
+                                                        </div>
+                                                        <div className="col-md-6 mb-3">
+                                                            <label className="form-label">Latitud (Ej. 20.676667)</label>
+                                                            <input type="number" step="any" className="form-control" name="latitude" value={formData.latitude} onChange={handleInputChange} />
+                                                        </div>
+                                                        <div className="col-md-6 mb-3">
+                                                            <label className="form-label">Longitud (Ej. -103.3475)</label>
+                                                            <input type="number" step="any" className="form-control" name="longitude" value={formData.longitude} onChange={handleInputChange} />
                                                         </div>
                                                         <div className="col-md-12 mb-3">
                                                             <label className="form-label">Etiquetas (separadas por coma)</label>

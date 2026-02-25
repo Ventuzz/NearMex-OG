@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 
 /**
@@ -12,6 +12,7 @@ const Header = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
+    const location = useLocation();
 
     // Alternar visibilidad del menú en móviles
     const toggleMenu = () => {
@@ -141,7 +142,7 @@ const Header = () => {
             }
         `}
             </style>
-            <header className={`header-area header-sticky ${isSticky ? 'background-header' : ''}`}>
+            <header className={`header-area header-sticky ${isSticky || location.pathname === '/' ? 'background-header' : ''}`}>
                 {/* ... Contenido del header ... */}
                 <div className="container">
                     <div className="row">
@@ -163,10 +164,13 @@ const Header = () => {
                                         <li><NavLink to="/" className={({ isActive }) => isActive ? "active" : ""} style={{ fontSize: '18px' }}>Inicio</NavLink></li>
                                     )}
                                     {user && (
-                                        <li><NavLink to="/catalog" className={({ isActive }) => isActive ? "active" : ""} style={{ fontSize: '18px' }}>Destinos</NavLink></li>
+                                        <li><NavLink to="/catalog" className={({ isActive }) => isActive ? "active" : ""} style={{ fontSize: '18px' }}>Catálogo</NavLink></li>
+                                    )}
+                                    {user?.role !== 'admin' && user && (
+                                        <li><NavLink to="/nearby" className={({ isActive }) => isActive ? "active" : ""} style={{ fontSize: '18px' }}>Cerca de Mí</NavLink></li>
                                     )}
                                     {user?.role !== 'admin' && (
-                                        <li><NavLink to="/contact" className={({ isActive }) => isActive ? "active" : ""} style={{ fontSize: '18px' }}>Sobre Nosotros</NavLink></li>
+                                        <li><NavLink to="/contact" className={({ isActive }) => isActive ? "active" : ""} style={{ fontSize: '18px' }}>Contacto</NavLink></li>
                                     )}
                                     {user ? (
                                         <>
@@ -220,7 +224,9 @@ const Header = () => {
                                             </li>
                                         </>
                                     ) : (
-                                        <li><NavLink to="/login" className={({ isActive }) => isActive ? "active" : ""}>Iniciar Sesión</NavLink></li>
+                                        <>
+                                            <li><NavLink to="/login" className={({ isActive }) => isActive ? "active" : ""}>Iniciar Sesión</NavLink></li>
+                                        </>
                                     )}
                                 </ul>
                                 <a className={`menu-trigger ${isMenuOpen ? 'active' : ''}`} onClick={toggleMenu}>
