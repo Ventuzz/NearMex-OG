@@ -30,7 +30,6 @@ exports.getFavorites = async (req, res) => {
 
 /**
  * Obtiene solo los IDs de favoritos del usuario autenticado.
- * Útil para verificar si un destino específico es favorito.
  */
 exports.getFavoriteIds = async (req, res) => {
     const userId = req.user.userId;

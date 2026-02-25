@@ -5,13 +5,9 @@ const jwt = require('jsonwebtoken');
 /**
  * Controlador de Autenticación.
  * Maneja el registro e inicio de sesión de usuarios.
+ * 
  */
 
-/**
- * Registra un nuevo usuario en la base de datos.
- * Verifica si el usuario o email ya existen.
- * Encripta la contraseña antes de guardarla.
- */
 exports.register = async (req, res) => {
     const { username, email, password } = req.body;
 
