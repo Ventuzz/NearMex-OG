@@ -29,11 +29,11 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         try {
             const response = await api.post('/auth/login', { email, password });
-            const { token, userId, username, role, avatar } = response.data;
+            const { token, userId, username, role, avatar, address } = response.data;
 
             localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify({ userId, username, role, avatar }));
-            setUser({ userId, username, role, avatar });
+            localStorage.setItem('user', JSON.stringify({ userId, username, role, avatar, address }));
+            setUser({ userId, username, role, avatar, address });
             return { success: true, role };
         } catch (error) {
             return { success: false, message: error.response?.data?.message || 'Error al iniciar sesión' };

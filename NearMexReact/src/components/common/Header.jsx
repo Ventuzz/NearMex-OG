@@ -148,20 +148,25 @@ const Header = () => {
                         <div className="col-12">
                             <nav className="main-nav">
                                 {/* Logo Start */}
-                                <Link to="/" className="logo">
-                                    <img src="/assets/images/logo.png" alt="" style={{ width: '200px' }} />
+                                <Link
+                                    to={user?.role === 'admin' ? '#' : '/'}
+                                    className="logo"
+                                    onClick={(e) => user?.role === 'admin' && e.preventDefault()}
+                                    style={{ cursor: user?.role === 'admin' ? 'default' : 'pointer' }}
+                                >
+                                    <img src="/assets/images/logo.png" alt="Logo" style={{ width: '200px' }} />
                                 </Link>
                                 {/* Logo End */}
                                 {/* Menu Start */}
                                 <ul className={`nav ${isMenuOpen ? 'active' : ''}`} style={{ display: isMenuOpen ? 'block' : undefined }}>
                                     {user?.role !== 'admin' && (
-                                        <li><NavLink to="/" className={({ isActive }) => isActive ? "active" : ""}>Inicio</NavLink></li>
+                                        <li><NavLink to="/" className={({ isActive }) => isActive ? "active" : ""} style={{ fontSize: '18px' }}>Inicio</NavLink></li>
                                     )}
                                     {user && (
-                                        <li><NavLink to="/catalog" className={({ isActive }) => isActive ? "active" : ""}>Destinos</NavLink></li>
+                                        <li><NavLink to="/catalog" className={({ isActive }) => isActive ? "active" : ""} style={{ fontSize: '18px' }}>Destinos</NavLink></li>
                                     )}
                                     {user?.role !== 'admin' && (
-                                        <li><NavLink to="/contact" className={({ isActive }) => isActive ? "active" : ""}>Sobre Nosotros</NavLink></li>
+                                        <li><NavLink to="/contact" className={({ isActive }) => isActive ? "active" : ""} style={{ fontSize: '18px' }}>Sobre Nosotros</NavLink></li>
                                     )}
                                     {user ? (
                                         <>

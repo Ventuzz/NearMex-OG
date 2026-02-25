@@ -29,6 +29,7 @@ const Profile = () => {
     const [isEditingBio, setIsEditingBio] = useState(false);
     const [bioInput, setBioInput] = useState('');
     const [avatarInput, setAvatarInput] = useState('');
+    const [addressInput, setAddressInput] = useState('');
 
     // Efecto para sincronizar la pestaña actual si cambia la URL
     useEffect(() => {
@@ -85,6 +86,7 @@ const Profile = () => {
             setProfileData(response.data);
             setBioInput(response.data.bio || '');
             setAvatarInput(response.data.avatar || '');
+            setAddressInput(response.data.address || '');
         } catch (error) {
             console.error('Error fetching profile:', error);
         }
@@ -92,11 +94,11 @@ const Profile = () => {
 
     const handleSaveBio = async () => {
         try {
-            await api.put('/auth/profile', { bio: bioInput, avatar: avatarInput });
-            setProfileData({ ...profileData, bio: bioInput, avatar: avatarInput });
+            await api.put('/auth/profile', { bio: bioInput, avatar: avatarInput, address: addressInput });
+            setProfileData({ ...profileData, bio: bioInput, avatar: avatarInput, address: addressInput });
 
             // Actualizar vista global inmediatamente
-            const updatedUser = { ...user, avatar: avatarInput };
+            const updatedUser = { ...user, avatar: avatarInput, address: addressInput };
             setUser(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
 
@@ -119,6 +121,47 @@ const Profile = () => {
                 confirmButtonColor: '#660000'
             });
         }
+    };
+
+    const getCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            Swal.fire({ title: 'Error', text: 'Tu navegador no soporta geolocalización', icon: 'error', confirmButtonColor: '#660000' });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Buscando ubicación...',
+            text: 'Revisa si tu navegador te pide permisos arriba.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                const data = await response.json();
+                if (data && data.display_name) {
+                    setAddressInput(data.display_name);
+                    Swal.close();
+                } else {
+                    Swal.fire({ title: 'Error', text: 'No pudimos traducir las coordenadas', icon: 'error', confirmButtonColor: '#660000' });
+                }
+            } catch (error) {
+                console.error("Error fetching address from coordinates", error);
+                Swal.fire({ title: 'Error', text: 'Error al contactar al servidor de mapas', icon: 'error', confirmButtonColor: '#660000' });
+            }
+        }, (error) => {
+            console.error("Geolocation Error:", error);
+            Swal.fire({ title: 'Aviso', text: 'Permiso denegado, bloqueado, o tardó demasiado.', icon: 'warning', confirmButtonColor: '#660000' });
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
     };
 
     // Cargar reseñas del usuario desde la API
@@ -330,9 +373,10 @@ const Profile = () => {
                                             </div>
 
                                             <div className="mt-4 pt-3 border-top">
-                                                <h5 className="mb-3">Biografía</h5>
+                                                <h5 className="mb-3">Datos del perfil</h5>
                                                 {isEditingBio ? (
                                                     <div>
+                                                        <strong>Foto de perfil</strong>
                                                         <input
                                                             type="text"
                                                             className="form-control mb-3"
@@ -340,6 +384,22 @@ const Profile = () => {
                                                             value={avatarInput}
                                                             onChange={(e) => setAvatarInput(e.target.value)}
                                                         />
+                                                        <strong>Dirección</strong>
+                                                        <div className="input-group mb-3">
+                                                            <input
+                                                                type="text"
+                                                                className="form-control"
+                                                                placeholder="Tu dirección completa..."
+                                                                value={addressInput}
+                                                                onChange={(e) => setAddressInput(e.target.value)}
+                                                            />
+                                                            <div className="input-group-append">
+                                                                <button className="btn btn-outline-secondary" type="button" onClick={getCurrentLocation} title="Usar mi ubicación actual">
+                                                                    <i className="fa fa-map-marker" style={{ color: '#660000' }}></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <strong>Biografía</strong>
                                                         <textarea
                                                             className="form-control mb-3"
                                                             rows="4"
@@ -349,15 +409,21 @@ const Profile = () => {
                                                             style={{ resize: 'none' }}
                                                         ></textarea>
                                                         <button onClick={handleSaveBio} className="btn btn-primary btn-sm me-2" style={{ backgroundColor: '#660000', borderColor: '#660000' }}>Guardar</button>
-                                                        <button onClick={() => { setIsEditingBio(false); setBioInput(profileData?.bio || ''); setAvatarInput(profileData?.avatar || ''); }} className="btn btn-secondary btn-sm">Cancelar</button>
+                                                        <button onClick={() => { setIsEditingBio(false); setBioInput(profileData?.bio || ''); setAvatarInput(profileData?.avatar || ''); setAddressInput(profileData?.address || ''); }} className="btn btn-secondary btn-sm">Cancelar</button>
                                                     </div>
                                                 ) : (
                                                     <div>
-                                                        <p style={{ whiteSpace: 'pre-wrap', color: profileData?.bio ? '#333' : '#999', fontStyle: profileData?.bio ? 'normal' : 'italic', minHeight: '80px' }}>
+                                                        {profileData?.address && (
+                                                            <p style={{ marginTop: '10px', marginBottom: '20px', fontSize: '18px' }}>
+                                                                <i className="fa fa-map-marker text-muted" style={{ marginRight: '8px', fontSize: '18px' }}></i>
+                                                                {profileData.address}
+                                                            </p>
+                                                        )}
+                                                        <p style={{ whiteSpace: 'pre-wrap', color: profileData?.bio ? '#333' : '#999', fontStyle: profileData?.bio ? 'normal' : 'italic', minHeight: '80px', fontSize: '18px' }}>
                                                             {profileData?.bio || 'Aún no has escrito una biografía.'}
                                                         </p>
                                                         <button onClick={() => setIsEditingBio(true)} className="btn btn-outline-dark btn-sm mt-2">
-                                                            <i className="fa fa-pencil"></i> {profileData?.bio ? 'Editar Biografía' : 'Añadir Biografía'}
+                                                            <i className="fa fa-pencil"></i> Editar Perfil
                                                         </button>
                                                     </div>
                                                 )}
@@ -458,7 +524,7 @@ const Profile = () => {
                     </div>
                 </div>
             </div>
-        </PageTransition>
+        </PageTransition >
     );
 };
 

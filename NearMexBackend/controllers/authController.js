@@ -73,7 +73,7 @@ exports.login = async (req, res) => {
  */
 exports.getProfile = async (req, res) => {
     try {
-        const [users] = await db.execute('SELECT id, username, email, bio, role, avatar, created_at FROM users WHERE id = ?', [req.user.userId]);
+        const [users] = await db.execute('SELECT id, username, email, bio, role, avatar, address, created_at FROM users WHERE id = ?', [req.user.userId]);
         if (users.length === 0) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
@@ -88,9 +88,9 @@ exports.getProfile = async (req, res) => {
  * Actualiza la biografía del usuario.
  */
 exports.updateProfile = async (req, res) => {
-    const { bio, avatar } = req.body;
+    const { bio, avatar, address } = req.body;
     try {
-        await db.execute('UPDATE users SET bio = ?, avatar = ? WHERE id = ?', [bio, avatar, req.user.userId]);
+        await db.execute('UPDATE users SET bio = ?, avatar = ?, address = ? WHERE id = ?', [bio, avatar, address, req.user.userId]);
         res.json({ message: 'Perfil actualizado correctamente' });
     } catch (error) {
         console.error(error);
