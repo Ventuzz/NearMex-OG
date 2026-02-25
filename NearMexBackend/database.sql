@@ -13,9 +13,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert default admin user
-INSERT IGNORE INTO users (username, email, password, role) VALUES 
-('admin', 'admin@nearmex.com', '$2b$12$s52/qUPlm2FJBd/kahopRwEhoPCQS74zyI3.YWyFa', 'admin');
 
 -- Destinations table
 CREATE TABLE IF NOT EXISTS destinations (
@@ -42,6 +39,10 @@ CREATE TABLE IF NOT EXISTS reviews (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (destination_id) REFERENCES destinations(id) ON DELETE CASCADE
 );
+
+-- Insert default admin user
+INSERT IGNORE INTO users (username, email, password, role) VALUES 
+('admin', 'admin@nearmex.com', '$2b$12$75MdQwKoDmj/61S0y/ubuOCLOi/qq30YdQGRsuGMZU.P40JO5ixba', 'admin');
 
 -- Insert inital destinations
 INSERT IGNORE INTO destinations (id, name, full_name, image, category, tags, description) VALUES
