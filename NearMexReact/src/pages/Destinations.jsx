@@ -70,7 +70,8 @@ const Destinations = () => {
             }
         };
 
-        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        const storageKey = `favorites_${user?.userId || user?.id}`;
+        const favorites = JSON.parse(localStorage.getItem(storageKey) || '[]');
         setIsFavorite(favorites.includes(id));
 
         fetchDestinationData();
@@ -87,16 +88,19 @@ const Destinations = () => {
         }
     };
 
-    // Maneja la acción de agregar/quitar favoritos (ahorita solo en localStorage)
+    // Maneja la acción de agregar/quitar favoritos (ahorita solo en localStorage vinculado al usuario)
     const toggleFavorite = () => {
-        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        if (!user) return; // Evitar que se guarde sin usuario
+
+        const storageKey = `favorites_${user?.userId || user?.id}`;
+        const favorites = JSON.parse(localStorage.getItem(storageKey) || '[]');
         let newFavorites;
         if (isFavorite) {
             newFavorites = favorites.filter(favId => favId !== id);
         } else {
             newFavorites = [...favorites, id];
         }
-        localStorage.setItem('favorites', JSON.stringify(newFavorites));
+        localStorage.setItem(storageKey, JSON.stringify(newFavorites));
         setIsFavorite(!isFavorite);
     };
 
@@ -354,7 +358,13 @@ const Destinations = () => {
                                                             loading="lazy"
                                                             allowFullScreen
                                                             referrerPolicy="no-referrer-when-downgrade"
-                                                            src={destination.map_url || `https://maps.google.com/maps?q=${encodeURIComponent(destination.category + ' ' + (destination.fullName || destination.name) + ', Guadalajara, Jalisco, Mexico')}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                                                            src={(() => {
+                                                                if (destination.map_url && destination.map_url.includes('<iframe')) {
+                                                                    const match = destination.map_url.match(/src="([^"]+)"/);
+                                                                    if (match && match[1]) return match[1];
+                                                                }
+                                                                return destination.map_url || `https://maps.google.com/maps?q=${encodeURIComponent(destination.category + ' ' + (destination.fullName || destination.name) + ', Guadalajara, Jalisco, Mexico')}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
+                                                            })()}
                                                         ></iframe>
                                                     </div>
                                                 </motion.div>
@@ -406,9 +416,16 @@ const Destinations = () => {
                                                         reviews.map((review) => (
                                                             <div key={review.id} className="mb-4 p-3 shadow-sm rounded bg-light" style={{ position: 'relative' }}>
                                                                 <div className="d-flex justify-content-between align-items-center mb-2">
-                                                                    <div>
-                                                                        <strong style={{ fontSize: '1.1em' }}>{review.username}</strong>
-                                                                        <span className="text-warning ms-2">{'★'.repeat(review.rating)}</span>
+                                                                    <div className="d-flex align-items-center">
+                                                                        {(user && user.userId === review.user_id && user.avatar) || review.avatar ? (
+                                                                            <img src={(user && user.userId === review.user_id && user.avatar) ? user.avatar : review.avatar} alt={review.username} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', marginRight: '10px' }} />
+                                                                        ) : (
+                                                                            <i className="fa fa-user-circle" style={{ fontSize: '40px', color: '#ccc', marginRight: '10px' }}></i>
+                                                                        )}
+                                                                        <div>
+                                                                            <strong style={{ fontSize: '1.1em', display: 'block', marginBottom: '-5px' }}>{review.username}</strong>
+                                                                            <span className="text-warning">{'★'.repeat(review.rating)}</span>
+                                                                        </div>
                                                                     </div>
                                                                     {user && user.userId === review.user_id && (
                                                                         <div>

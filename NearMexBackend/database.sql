@@ -8,8 +8,14 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) DEFAULT 'user',
+    avatar VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Insert default admin user
+INSERT IGNORE INTO users (username, email, password, role) VALUES 
+('admin', 'admin@nearmex.com', '$2b$12$s52/qUPlm2FJBd/kahopRwEhoPCQS74zyI3.YWyFa', 'admin');
 
 -- Destinations table
 CREATE TABLE IF NOT EXISTS destinations (

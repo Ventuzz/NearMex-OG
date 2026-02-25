@@ -29,12 +29,12 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         try {
             const response = await api.post('/auth/login', { email, password });
-            const { token, userId, username } = response.data;
+            const { token, userId, username, role, avatar } = response.data;
 
             localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify({ userId, username }));
-            setUser({ userId, username });
-            return { success: true };
+            localStorage.setItem('user', JSON.stringify({ userId, username, role, avatar }));
+            setUser({ userId, username, role, avatar });
+            return { success: true, role };
         } catch (error) {
             return { success: false, message: error.response?.data?.message || 'Error al iniciar sesión' };
         }
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, register, logout, loading, setUser }}>
             {children}
         </AuthContext.Provider>
     );

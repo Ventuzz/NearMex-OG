@@ -59,9 +59,9 @@ exports.login = async (req, res) => {
         }
 
         // Generar token JWT con vigencia de 7 días
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-        res.json({ token, userId: user.id, username: user.username });
+        res.json({ token, userId: user.id, username: user.username, role: user.role, avatar: user.avatar });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error en el servidor' });
@@ -73,7 +73,7 @@ exports.login = async (req, res) => {
  */
 exports.getProfile = async (req, res) => {
     try {
-        const [users] = await db.execute('SELECT id, username, email, bio, created_at FROM users WHERE id = ?', [req.user.userId]);
+        const [users] = await db.execute('SELECT id, username, email, bio, role, avatar, created_at FROM users WHERE id = ?', [req.user.userId]);
         if (users.length === 0) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
@@ -88,9 +88,9 @@ exports.getProfile = async (req, res) => {
  * Actualiza la biografía del usuario.
  */
 exports.updateProfile = async (req, res) => {
-    const { bio } = req.body;
+    const { bio, avatar } = req.body;
     try {
-        await db.execute('UPDATE users SET bio = ? WHERE id = ?', [bio, req.user.userId]);
+        await db.execute('UPDATE users SET bio = ?, avatar = ? WHERE id = ?', [bio, avatar, req.user.userId]);
         res.json({ message: 'Perfil actualizado correctamente' });
     } catch (error) {
         console.error(error);

@@ -14,7 +14,7 @@ exports.getReviews = async (req, res) => {
 
     try {
         const [reviews] = await db.execute(
-            `SELECT r.*, u.username 
+            `SELECT r.*, u.username, u.avatar 
              FROM reviews r 
              JOIN users u ON r.user_id = u.id 
              WHERE r.destination_id = ? 
@@ -117,6 +117,30 @@ exports.deleteReview = async (req, res) => {
         res.json({ message: 'Reseña eliminada exitosamente' });
     } catch (error) {
         console.error(error);
+        res.status(500).json({ message: 'Error al eliminar reseña' });
+    }
+};
+
+/**
+ * Elimina cualquier reseña existente (Solo Admin).
+ * No verifica que la reseña pertenezca al usuario (pues es administrador).
+ */
+exports.deleteReviewAdmin = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await db.execute(
+            'DELETE FROM reviews WHERE id = ?',
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Reseña no encontrada' });
+        }
+
+        res.json({ message: 'Reseña eliminada exitosamente por el administrador' });
+    } catch (error) {
+        console.error("Error al eliminar reseña (admin):", error);
         res.status(500).json({ message: 'Error al eliminar reseña' });
     }
 };

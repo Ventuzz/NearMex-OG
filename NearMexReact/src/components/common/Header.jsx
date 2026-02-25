@@ -20,8 +20,12 @@ const Header = () => {
 
     // Manejar cierre de sesión
     const handleLogout = () => {
-        logout();
+        // Redirigir a login para forzar siempre la transición oscura desde cualquier página
         navigate('/login');
+        // Limpiamos el estado en el siguiente tick del event loop
+        setTimeout(() => {
+            logout();
+        }, 300); // 300ms es la duración de la animación promedio de Framer Motion
     };
 
     // Alternar visibilidad del dropdown del usuario
@@ -150,11 +154,15 @@ const Header = () => {
                                 {/* Logo End */}
                                 {/* Menu Start */}
                                 <ul className={`nav ${isMenuOpen ? 'active' : ''}`} style={{ display: isMenuOpen ? 'block' : undefined }}>
-                                    <li><NavLink to="/" className={({ isActive }) => isActive ? "active" : ""}>Inicio</NavLink></li>
+                                    {user?.role !== 'admin' && (
+                                        <li><NavLink to="/" className={({ isActive }) => isActive ? "active" : ""}>Inicio</NavLink></li>
+                                    )}
                                     {user && (
                                         <li><NavLink to="/catalog" className={({ isActive }) => isActive ? "active" : ""}>Destinos</NavLink></li>
                                     )}
-                                    <li><NavLink to="/contact" className={({ isActive }) => isActive ? "active" : ""}>Sobre Nosotros</NavLink></li>
+                                    {user?.role !== 'admin' && (
+                                        <li><NavLink to="/contact" className={({ isActive }) => isActive ? "active" : ""}>Sobre Nosotros</NavLink></li>
+                                    )}
                                     {user ? (
                                         <>
                                             <li className="profile-menu-item" style={{ position: 'relative' }}>
@@ -163,7 +171,11 @@ const Header = () => {
                                                     onClick={toggleDropdown}
                                                     style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
                                                 >
-                                                    <i className="fa fa-user-circle" style={{ fontSize: '20px', marginRight: '8px' }}></i>
+                                                    {user.avatar ? (
+                                                        <img src={user.avatar} alt={user.username} style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', marginRight: '8px' }} />
+                                                    ) : (
+                                                        <i className="fa fa-user-circle" style={{ fontSize: '20px', marginRight: '8px' }}></i>
+                                                    )}
                                                     {user.username}
                                                     <i className={`fa fa-chevron-${isDropdownOpen ? 'up' : 'down'}`} style={{ fontSize: '12px', marginLeft: '6px' }}></i>
                                                 </a>
@@ -171,6 +183,13 @@ const Header = () => {
                                                 {/* Dropdown Menu */}
                                                 {isDropdownOpen && (
                                                     <ul className="profile-dropdown-menu">
+                                                        {user.role === 'admin' && (
+                                                            <li style={{ backgroundColor: '#660000', marginBottom: '5px', borderRadius: '5px' }}>
+                                                                <Link to="/admin" onClick={() => setIsDropdownOpen(false)} style={{ color: '#ffffff', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                                                                    <i className="fa fa-cogs" style={{ color: '#ffffff', marginRight: '8px' }}></i> Panel Admin
+                                                                </Link>
+                                                            </li>
+                                                        )}
                                                         <li>
                                                             <Link to="/profile?tab=info" onClick={() => setIsDropdownOpen(false)}>
                                                                 <i className="fa fa-info-circle"></i> Información del Perfil

@@ -46,3 +46,56 @@ exports.getDestinationById = async (req, res) => {
         res.status(500).json({ message: 'Error al obtener el destino' });
     }
 };
+
+/**
+ * Crea un nuevo destino (Solo Admin)
+ */
+exports.createDestination = async (req, res) => {
+    const { id, name, full_name, description, image, category, map_url, schedule, tags } = req.body;
+    try {
+        const tagsString = Array.isArray(tags) ? JSON.stringify(tags) : tags;
+
+        await db.execute(
+            'INSERT INTO destinations (id, name, full_name, description, image, category, map_url, schedule, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [id || name.toLowerCase().replace(/\s+/g, '-'), name, full_name || '', description, image, category, map_url || '', schedule || '', tagsString || '[]']
+        );
+        res.status(201).json({ message: 'Destino creado exitosamente' });
+    } catch (error) {
+        console.error("Error al crear destino:", error);
+        res.status(500).json({ message: 'Error al crear el destino' });
+    }
+};
+
+/**
+ * Actualiza un destino existente (Solo Admin)
+ */
+exports.updateDestination = async (req, res) => {
+    const { id } = req.params;
+    const { name, full_name, description, image, category, map_url, schedule, tags } = req.body;
+    try {
+        const tagsString = Array.isArray(tags) ? JSON.stringify(tags) : tags;
+
+        await db.execute(
+            'UPDATE destinations SET name=?, full_name=?, description=?, image=?, category=?, map_url=?, schedule=?, tags=? WHERE id=?',
+            [name, full_name || '', description, image, category, map_url || '', schedule || '', tagsString, id]
+        );
+        res.json({ message: 'Destino actualizado exitosamente' });
+    } catch (error) {
+        console.error("Error al actualizar destino:", error);
+        res.status(500).json({ message: 'Error al actualizar el destino' });
+    }
+};
+
+/**
+ * Elimina un destino (Solo Admin)
+ */
+exports.deleteDestination = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.execute('DELETE FROM destinations WHERE id = ?', [id]);
+        res.json({ message: 'Destino eliminado exitosamente' });
+    } catch (error) {
+        console.error("Error al eliminar destino:", error);
+        res.status(500).json({ message: 'Error al eliminar el destino' });
+    }
+};
