@@ -47,23 +47,13 @@ const Profile = () => {
         }
     }, [user, navigate]);
 
-    // Cargar favoritos del localStorage consultando sus datos al servidor
+    // Cargar favoritos del usuario desde la API
     useEffect(() => {
         const fetchFavoritesData = async () => {
             if (activeTab === 'favorites') {
-                const storageKey = `favorites_${user?.userId || user?.id}`;
-                const savedFavorites = JSON.parse(localStorage.getItem(storageKey)) || [];
-
-                if (savedFavorites.length === 0) {
-                    setFavorites([]);
-                    return;
-                }
-
                 try {
-                    const response = await api.get('/destinations');
-                    const allDestinations = response.data;
-                    const favoriteDestinations = allDestinations.filter(dest => savedFavorites.includes(dest.id));
-                    setFavorites(favoriteDestinations);
+                    const response = await api.get('/favorites');
+                    setFavorites(response.data);
                 } catch (err) {
                     console.error("Error fetching favorites data:", err);
                 }
@@ -200,23 +190,21 @@ const Profile = () => {
             cancelButtonColor: '#6c757d',
             confirmButtonText: 'Sí, quitar',
             cancelButtonText: 'Cancelar'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                // Actualizar state
-                const newFavorites = favorites.filter(fav => fav.id !== id);
-                setFavorites(newFavorites);
-
-                // Actualizar localStorage
-                const storageKey = `favorites_${user?.userId || user?.id}`;
-                localStorage.setItem(storageKey, JSON.stringify(newFavorites.map(f => f.id)));
-
-                Swal.fire({
-                    title: '¡Eliminado!',
-                    text: 'Removido de tus favoritos.',
-                    icon: 'success',
-                    iconColor: '#660000',
-                    confirmButtonColor: '#660000'
-                });
+                try {
+                    await api.delete(`/favorites/${id}`);
+                    setFavorites(favorites.filter(fav => fav.id !== id));
+                    Swal.fire({
+                        title: '¡Eliminado!',
+                        text: 'Removido de tus favoritos.',
+                        icon: 'success',
+                        iconColor: '#660000',
+                        confirmButtonColor: '#660000'
+                    });
+                } catch (err) {
+                    console.error('Error al quitar favorito:', err);
+                }
             }
         });
     };

@@ -62,6 +62,12 @@ const Destinations = () => {
                 const related = allResponse.data.filter(d => d.id !== id).slice(0, 4);
                 setRelatedDestinations(related);
 
+                // Verificar si el destino ya es favorito consultando la API
+                if (user) {
+                    const favRes = await api.get('/favorites/ids');
+                    setIsFavorite(favRes.data.includes(id));
+                }
+
             } catch (error) {
                 console.error("Error fetching destination data:", error);
                 setDestination(null);
@@ -69,10 +75,6 @@ const Destinations = () => {
                 setLoading(false);
             }
         };
-
-        const storageKey = `favorites_${user?.userId || user?.id}`;
-        const favorites = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        setIsFavorite(favorites.includes(id));
 
         fetchDestinationData();
         fetchReviews();
@@ -88,20 +90,20 @@ const Destinations = () => {
         }
     };
 
-    // Maneja la acción de agregar/quitar favoritos (ahorita solo en localStorage vinculado al usuario)
-    const toggleFavorite = () => {
-        if (!user) return; // Evitar que se guarde sin usuario
+    // Maneja la acción de agregar/quitar favoritos usando la API
+    const toggleFavorite = async () => {
+        if (!user) return;
 
-        const storageKey = `favorites_${user?.userId || user?.id}`;
-        const favorites = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        let newFavorites;
-        if (isFavorite) {
-            newFavorites = favorites.filter(favId => favId !== id);
-        } else {
-            newFavorites = [...favorites, id];
+        try {
+            if (isFavorite) {
+                await api.delete(`/favorites/${id}`);
+            } else {
+                await api.post('/favorites', { destinationId: id });
+            }
+            setIsFavorite(!isFavorite);
+        } catch (err) {
+            console.error('Error al actualizar favorito:', err);
         }
-        localStorage.setItem(storageKey, JSON.stringify(newFavorites));
-        setIsFavorite(!isFavorite);
     };
 
     // Envía una nueva reseña al servidor con confirmación

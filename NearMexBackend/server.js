@@ -17,6 +17,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/destinations', require('./routes/destinationRoutes'));
+app.use('/api/favorites', require('./routes/favoriteRoutes'));
 
 
 

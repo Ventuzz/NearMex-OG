@@ -58,3 +58,14 @@ INSERT IGNORE INTO destinations (id, name, full_name, image, category, tags, des
 ('arcos-vallarta', 'Arcos Vallarta', 'Arcos de Guadalajara', '/assets/images/destinations/arcos-vallarta.jpg', 'Monumento', '["Icono", "Vallarta", "Turismo"]', 'Antigua entrada a la ciudad, un monumento emblemático en la avenida Vallarta.', 20.6738, -103.3875),
 ('karne-garibaldi', 'Karne Garibaldi', 'Karne Garibaldi Santa Tere', '/assets/images/destinations/karne-garibaldi.png', 'Restaurante', '["Gastronomía", "Tradición", "Récord Guinness"]', 'Famoso por su "carne en su jugo" y por tener el servicio más rápido del mundo.', 20.6750, -103.3644),
 ('la-chata', 'La Chata', 'Cenaduría La Chata', '/assets/images/destinations/la-chata.jpg', 'Restaurante', '["Gastronomía", "Cena", "Tradición"]', 'Un lugar clásico para disfrutar de antojitos mexicanos y platillos tapatíos.', 20.6748, -103.3486);
+
+-- Favorites table
+CREATE TABLE IF NOT EXISTS favorites (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    destination_id VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_favorite (user_id, destination_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (destination_id) REFERENCES destinations(id) ON DELETE CASCADE
+);
