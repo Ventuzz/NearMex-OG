@@ -142,7 +142,7 @@ const Header = () => {
             }
         `}
             </style>
-            <header className={`header-area header-sticky ${isSticky || location.pathname === '/' ? 'background-header' : ''}`}>
+            <header className={`header-area header-sticky ${isSticky ? 'background-header' : ''}`}>
                 {/* ... Contenido del header ... */}
                 <div className="container">
                     <div className="row">

@@ -84,7 +84,13 @@ const Catalog = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <h3>Catálogo de Destinos</h3>
-                            <span className="breadcrumb"><Link to="/">Inicio</Link>  &gt;  Catálogo</span>
+                            <span className="breadcrumb">
+                                {user?.role === 'admin' ? (
+                                    <span style={{ color: '#fff', cursor: 'default' }}>Inicio</span>
+                                ) : (
+                                    <Link to="/">Inicio</Link>
+                                )}  &gt;  Catálogo
+                            </span>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,4 @@
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
@@ -9,7 +8,7 @@ import Contact from './pages/Contact';
 import Profile from './pages/Profile';
 
 import { AuthProvider, AuthContext } from './context/AuthContext';
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
@@ -42,32 +41,24 @@ const UserRoute = ({ children }) => {
 };
 
 function App() {
-  const location = useLocation();
-
-  // Desplazar la vista hacia arriba cada vez que cambia la ruta
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
-
   return (
     <AuthProvider>
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Home />} />
-            <Route path="catalog" element={<Catalog />} />
-            <Route path="nearby" element={<UserRoute><Nearby /></UserRoute>} />
-            <Route path="destination/:id" element={<Destinations />} />
-            <Route path="contact" element={<Contact />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
-          </Route>
-        </Routes>
-      </AnimatePresence>
+      <Routes>
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Home />} />
+          <Route path="catalog" element={<Catalog />} />
+          <Route path="nearby" element={<UserRoute><Nearby /></UserRoute>} />
+          <Route path="destination/:id" element={<Destinations />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+        </Route>
+      </Routes>
     </AuthProvider>
   );
 }
 
 export default App;
+

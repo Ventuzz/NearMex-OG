@@ -204,30 +204,12 @@ const Nearby = () => {
 
     return (
         <PageTransition>
-            <div className="page-heading" style={{
-                backgroundImage: 'url(/assets/images/page-heading-bg.jpg)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                padding: '120px 0px',
-                textAlign: 'center',
-                position: 'relative',
-                borderBottomLeftRadius: '150px',
-                borderBottomRightRadius: '150px'
-            }}>
-                <div style={{
-                    position: 'absolute',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.6)',
-                    borderBottomLeftRadius: '150px',
-                    borderBottomRightRadius: '150px'
-                }}></div>
-                <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="page-heading header-text">
+                <div className="container">
                     <div className="row">
                         <div className="col-lg-12">
-                            <h2 style={{ color: '#fff', fontSize: '48px', fontWeight: '700', marginBottom: '15px' }}>Descubre lugares cercanos</h2>
-                            <p style={{ color: '#ddd', fontSize: '18px', maxWidth: '600px', margin: '0 auto' }}>
-                                Utilizamos tu ubicación para mostrarte los destinos turísticos más próximos a ti, calculando la distancia exacta para que planifiques tu viaje ideal.
-                            </p>
+                            <h3>Cerca de Mí</h3>
+                            <span className="breadcrumb"><Link to="/">Inicio</Link>  &gt;  Cerca de Mí</span>
                         </div>
                     </div>
                 </div>
