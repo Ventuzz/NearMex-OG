@@ -66,9 +66,11 @@ const Home = () => {
                             <div className="caption header-text">
                                 {user ? (
                                     <>
-                                        <h6>Descubre lo mejor de México</h6>
-                                        <h2>¡Hola, {user.username}!</h2>
-                                        <p style={{ fontSize: '22px' }}>Busca tu próximo destino o explora nuestras recomendaciones.</p>
+                                        <h6 style={{ fontSize: '24px' }}>Descubre lo mejor de Guadalajara</h6>
+                                        <h2 style={{ position: 'relative', display: 'inline-block', fontSize: '56px' }}>
+                                            ¡Hola, {user.username}!
+                                        </h2>
+                                        <p style={{ fontSize: '22px', marginTop: '10px' }}>Descubre tu próximo destino y vive una experiencia inolvidable. Explora nuestras recomendaciones y encuentra los destinos perfectos para ti.</p>
                                         <div className="search-input">
                                             <div className="main-button">
                                                 <Link to="/catalog">encontrar destinos</Link>
@@ -77,9 +79,11 @@ const Home = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <h6>Encuentra tu próximo destino</h6>
-                                        <h2>Descubre lo mejor de México</h2>
-                                        <p style={{ fontSize: '22px' }}>Busca tu próximo destino o explora nuestras recomendaciones.</p>
+                                        <h6 style={{ fontSize: '24px' }}>Encuentra tu próximo destino</h6>
+                                        <h2 style={{ position: 'relative', display: 'inline-block', fontSize: '56px' }}>
+                                            Descubre lo mejor de Guadalajara
+                                        </h2>
+                                        <p style={{ fontSize: '22px', marginTop: '10px' }}>Busca tu próximo destino o explora nuestras recomendaciones.</p>
                                         <div className="search-input">
                                             <div className="main-button">
                                                 <Link to="/register">Regístrate para ver todo</Link>

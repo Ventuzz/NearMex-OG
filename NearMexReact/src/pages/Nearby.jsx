@@ -8,7 +8,7 @@ import { AuthContext } from '../context/AuthContext';
 
 // Función de Haversine para calcular distancia en kilómetros
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radio de la Tierra en km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
@@ -32,26 +32,10 @@ const Nearby = () => {
     const [errorMsg, setErrorMsg] = useState("");
     const [locationSource, setLocationSource] = useState("");
 
-    // Autocomplete states
     const [manualAddress, setManualAddress] = useState("");
     const [isSearching, setIsSearching] = useState(false);
-    const [suggestions, setSuggestions] = useState([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
 
     const navigate = useNavigate();
-    const searchTimeout = useRef(null);
-    const wrapperRef = useRef(null);
-
-    // Click outside listener to close dropdown
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-                setShowSuggestions(false);
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [wrapperRef]);
 
     useEffect(() => {
         // 1. Conseguir destinos de la API
@@ -142,37 +126,8 @@ const Nearby = () => {
         setErrorMsg(""); // Clear errors on success
     };
 
-    // Autocomplete handler
     const handleAddressChange = (e) => {
-        const val = e.target.value;
-        setManualAddress(val);
-
-        if (val.length < 4) {
-            setSuggestions([]);
-            setShowSuggestions(false);
-            return;
-        }
-
-        if (searchTimeout.current) clearTimeout(searchTimeout.current);
-
-        // Debounce de 600ms para no asfixiar el API
-        searchTimeout.current = setTimeout(async () => {
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&viewbox=${GDL_VIEWBOX}&bounded=1&limit=5`);
-                const data = await response.json();
-                setSuggestions(data || []);
-                setShowSuggestions(true);
-            } catch (err) {
-                console.error("Nominatim autocomplete error:", err);
-            }
-        }, 600);
-    };
-
-    const handleSelectSuggestion = (suggestion) => {
-        setManualAddress(suggestion.display_name);
-        setShowSuggestions(false);
-        setLocationSource("la dirección ingresada");
-        applyCoordinates(parseFloat(suggestion.lat), parseFloat(suggestion.lon));
+        setManualAddress(e.target.value);
     };
 
     const handleManualSearchBtn = async () => {
@@ -191,7 +146,6 @@ const Nearby = () => {
             if (data && data.length > 0) {
                 setLocationSource("la dirección ingresada");
                 applyCoordinates(parseFloat(data[0].lat), parseFloat(data[0].lon));
-                setShowSuggestions(false);
             } else {
                 Swal.fire({ title: 'Error', text: 'No pudimos localizar la dirección en el área de Guadalajara. Sé más específico, ej. "Arcos Vallarta".', icon: 'error', confirmButtonColor: '#660000' });
             }
@@ -220,7 +174,7 @@ const Nearby = () => {
                     <div className="row justify-content-center">
                         <div className="col-lg-8">
                             <div className="card shadow-sm border-0" style={{ borderRadius: '15px', position: 'relative' }}>
-                                <div className="card-body p-4" ref={wrapperRef}>
+                                <div className="card-body p-4">
                                     <h5 className="mb-3" style={{ fontWeight: '600', color: '#1a1a1a' }}>📍 ¿No encuentras tu dirección? Buscala manualmente:</h5>
                                     <div className="input-group">
                                         <input
@@ -229,8 +183,12 @@ const Nearby = () => {
                                             placeholder="Ej. Arcos Vallarta, Zapopan..."
                                             value={manualAddress}
                                             onChange={handleAddressChange}
-                                            onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-                                            onKeyPress={(e) => e.key === 'Enter' && handleManualSearchBtn()}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    handleManualSearchBtn();
+                                                }
+                                            }}
                                             disabled={isSearching}
                                             style={{ borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px', fontSize: '16px' }}
                                         />
@@ -246,50 +204,6 @@ const Nearby = () => {
                                             </button>
                                         </div>
                                     </div>
-
-                                    {/* Dropdown de Autocompletado */}
-                                    <AnimatePresence>
-                                        {showSuggestions && suggestions.length > 0 && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: -10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: '110px',
-                                                    left: '25px',
-                                                    right: '135px',
-                                                    backgroundColor: 'white',
-                                                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-                                                    borderRadius: '10px',
-                                                    zIndex: 1000,
-                                                    overflow: 'hidden',
-                                                    border: '1px solid #eee'
-                                                }}
-                                            >
-                                                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                                                    {suggestions.map((sug, idx) => (
-                                                        <li
-                                                            key={idx}
-                                                            onClick={() => handleSelectSuggestion(sug)}
-                                                            style={{
-                                                                padding: '12px 20px',
-                                                                cursor: 'pointer',
-                                                                borderBottom: idx === suggestions.length - 1 ? 'none' : '1px solid #f5f5f5',
-                                                                fontSize: '15px',
-                                                                color: '#444'
-                                                            }}
-                                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                                        >
-                                                            <i className="fa fa-map-marker" style={{ color: '#660000', marginRight: '10px' }}></i>
-                                                            {sug.display_name}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
 
                                     {errorMsg && (
                                         <div className="alert alert-warning mt-3 mb-0">

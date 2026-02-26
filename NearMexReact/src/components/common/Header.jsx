@@ -13,6 +13,7 @@ const Header = () => {
     const { user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
+    const headerRef = React.useRef(null);
 
     // Alternar visibilidad del menú en móviles
     const toggleMenu = () => {
@@ -33,6 +34,27 @@ const Header = () => {
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
     };
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setIsMenuOpen(false);
+        setIsDropdownOpen(false);
+    }, [location.pathname]);
+
+    // Close mobile menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (headerRef.current && !headerRef.current.contains(event.target)) {
+                setIsMenuOpen(false);
+                setIsDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Efecto para detectar scroll y cambiar estilo del header
     useEffect(() => {
@@ -142,7 +164,7 @@ const Header = () => {
             }
         `}
             </style>
-            <header className={`header-area header-sticky ${isSticky ? 'background-header' : ''}`}>
+            <header ref={headerRef} className={`header-area header-sticky ${isSticky ? 'background-header' : ''}`}>
                 {/* ... Contenido del header ... */}
                 <div className="container">
                     <div className="row">

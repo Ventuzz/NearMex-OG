@@ -446,7 +446,7 @@ const Destinations = () => {
                                                                             <button
                                                                                 className="btn btn-link p-0"
                                                                                 onClick={() => handleDeleteReview(review.id)}
-                                                                                style={{ color: '#ee626b' }}
+                                                                                style={{ color: '#660000' }}
                                                                             >
                                                                                 <i className="fa fa-trash"></i>
                                                                             </button>

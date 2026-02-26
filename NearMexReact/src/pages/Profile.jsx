@@ -361,7 +361,7 @@ const Profile = () => {
                                             </div>
 
                                             <div className="mt-4 pt-3 border-top">
-                                                <h5 className="mb-3">Información Personal</h5>
+                                                <h5 className="mb-3">Detalles de la cuenta</h5>
                                                 {isEditingBio ? (
                                                     <div>
                                                         <strong>URL de tu Foto (Avatar)</strong>
@@ -372,7 +372,7 @@ const Profile = () => {
                                                             value={avatarInput}
                                                             onChange={(e) => setAvatarInput(e.target.value)}
                                                         />
-                                                        <strong>Dirección para Calculadora de Distancias</strong>
+                                                        <strong>Dirección</strong>
                                                         <div className="input-group mb-3">
                                                             <input
                                                                 type="text"
@@ -445,7 +445,7 @@ const Profile = () => {
                                                                 </div>
                                                                 <div className="card-footer bg-white border-top-0 d-flex justify-content-between">
                                                                     <button onClick={() => navigate(`/destination/${item.id}`)} className="btn btn-sm btn-outline-dark">Ver Detalles</button>
-                                                                    <button onClick={() => removeFavorite(item.id)} className="btn btn-sm" style={{ color: '#660000' }}>
+                                                                    <button onClick={() => removeFavorite(item.id)} className="btn btn-sm text-white" style={{ backgroundColor: '#660000' }}>
                                                                         <i className="fa fa-trash"></i>
                                                                     </button>
                                                                 </div>
@@ -495,7 +495,8 @@ const Profile = () => {
                                                             </div>
                                                             <p className="mb-2">{review.comment}</p>
                                                             <button
-                                                                className="btn btn-sm btn-outline-danger"
+                                                                className="btn btn-sm text-white"
+                                                                style={{ backgroundColor: '#660000', alignSelf: 'flex-start' }}
                                                                 onClick={() => deleteReview(review.id)}
                                                             >
                                                                 Eliminar

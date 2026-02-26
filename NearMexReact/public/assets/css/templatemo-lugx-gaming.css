@@ -760,7 +760,6 @@ Banner Style
 
 .main-banner .caption h2:after {
   position: absolute;
-  background-image: url(../images/caption-dec.png);
   width: 202px;
   height: 12px;
   content: '';
