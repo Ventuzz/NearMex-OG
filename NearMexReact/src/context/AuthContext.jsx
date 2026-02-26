@@ -21,8 +21,6 @@ export const AuthProvider = ({ children }) => {
             if (token && userData) {
                 // Carga inicial rápida desde caché local
                 setUser(JSON.parse(userData));
-
-                // Sincronización silenciosa en segundo plano
                 try {
                     const response = await api.get('/auth/profile');
                     const freshUser = {

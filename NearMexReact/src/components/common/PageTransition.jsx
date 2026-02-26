@@ -23,7 +23,7 @@ const PageTransition = ({ children }) => {
                     left: 0,
                     width: '100vw',
                     height: '100vh',
-                    backgroundColor: 'rgba(25, 25, 25, 1)', // Negro suave
+                    backgroundColor: 'rgba(25, 25, 25, 1)',
                     zIndex: 9999,
                     pointerEvents: 'none'
                 }}

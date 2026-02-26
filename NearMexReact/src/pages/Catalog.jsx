@@ -20,13 +20,13 @@ const Catalog = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState('Mostrar Todo');
 
-    // Effect to fetch destinations from API
+    // Efecto para obtener los destinos de la API
     useEffect(() => {
         const fetchDestinations = async () => {
             try {
                 const response = await api.get('/destinations');
                 setDestinations(response.data);
-                setFilteredDestinations(response.data); // Initialize filtered destinations with all destinations
+                setFilteredDestinations(response.data); // Inicializa los destinos filtrados con todos los destinos
             } catch (error) {
                 console.error("Error fetching destinations:", error);
                 Swal.fire('Error', 'No se pudieron cargar los destinos.', 'error');
@@ -38,23 +38,23 @@ const Catalog = () => {
         fetchDestinations();
     }, []);
 
-    // Effect to apply filter if category is received from another page
+    // Efecto para aplicar el filtro si la categoría se recibe desde otra página
     useEffect(() => {
         if (location.state && location.state.category) {
             setActiveFilter(location.state.category);
         }
     }, [location.state]);
 
-    // Effect to apply filters whenever destinations, activeFilter, or searchQuery changes
+    // Efecto para aplicar filtros cada vez que destinations, activeFilter o searchQuery cambien
     useEffect(() => {
         let currentFiltered = destinations;
 
-        // Apply category filter
+        // Aplicar filtro de categoría
         if (activeFilter !== 'Mostrar Todo') {
             currentFiltered = currentFiltered.filter(item => item.category === activeFilter);
         }
 
-        // Apply search query filter
+        // Aplicar filtro de búsqueda
         if (searchQuery) {
             const lowerCaseSearchQuery = searchQuery.toLowerCase();
             currentFiltered = currentFiltered.filter(item =>
@@ -67,12 +67,12 @@ const Catalog = () => {
         setFilteredDestinations(currentFiltered);
     }, [destinations, activeFilter, searchQuery]);
 
-    // Handler to change the filter category
+    // Handler para cambiar la categoría del filtro
     const handleFilter = (category) => {
         setActiveFilter(category);
     };
 
-    // Handler for destination click
+    // Handler para hacer clic en un destino
     const handleDestinationClick = (id) => {
         navigate(`/destination/${id}`);
     };

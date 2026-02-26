@@ -20,7 +20,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 // Limites geográficos aproximados de la ZMG (Guadalajara, Zapopan, Tlaquepaque, Tonalá, Tlajomulco)
-// Left,Top,Right,Bottom -> West,North,East,South
+// Izquierda,Arriba,Derecha,Abajo -> Oeste,Norte,Este,Sur
 const GDL_VIEWBOX = "-103.55,20.85,-103.15,20.40";
 
 const Nearby = () => {
@@ -54,7 +54,7 @@ const Nearby = () => {
 
         const tryGetCoordinates = async (addressText) => {
             try {
-                // Limit search to Guadalajara via viewbox
+                // Limitar la búsqueda a Guadalajara a través de viewbox
                 const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressText)}&viewbox=${GDL_VIEWBOX}&bounded=1&limit=1`);
                 const data = await response.json();
                 if (data && data.length > 0) {
@@ -123,7 +123,7 @@ const Nearby = () => {
         destinationsWithDistance.sort((a, b) => a.distance - b.distance);
         setDestinations(destinationsWithDistance);
         setLoading(false);
-        setErrorMsg(""); // Clear errors on success
+        setErrorMsg(""); // Limpiar errores en caso de éxito
     };
 
     const handleAddressChange = (e) => {

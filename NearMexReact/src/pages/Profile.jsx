@@ -224,7 +224,6 @@ const Profile = () => {
             if (result.isConfirmed) {
                 try {
                     await api.delete(`/reviews/${reviewId}`);
-                    // Remover de la lista local en vez de hacer otro fetch
                     setReviews(reviews.filter(rev => rev.id !== reviewId));
                     Swal.fire({
                         title: '¡Eliminado!',
@@ -253,7 +252,6 @@ const Profile = () => {
         }
     };
 
-    // Determinar la dirección de animación basada en los índices
     const direction = tabIndices[activeTab] > tabIndices[previousTab] ? 1 : -1;
 
     const slideVariants = {

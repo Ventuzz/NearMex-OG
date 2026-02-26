@@ -7,7 +7,7 @@ const db = require('../config/db');
 
 /**
  * Obtiene todas las reseñas de un destino específico.
- * Realiza un JOIN con la tabla de usuarios para obtener el nombre del autor.
+ * Realiza un JOIN con la tabla de usuarios para obtener el nombre del usuario.
  */
 exports.getReviews = async (req, res) => {
     const { destinationId } = req.params;
@@ -123,7 +123,6 @@ exports.deleteReview = async (req, res) => {
 
 /**
  * Elimina cualquier reseña existente (Solo Admin).
- * No verifica que la reseña pertenezca al usuario (pues es administrador).
  */
 exports.deleteReviewAdmin = async (req, res) => {
     const { id } = req.params;

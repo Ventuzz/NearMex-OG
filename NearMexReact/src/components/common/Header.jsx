@@ -22,12 +22,11 @@ const Header = () => {
 
     // Manejar cierre de sesión
     const handleLogout = () => {
-        // Redirigir a login para forzar siempre la transición oscura desde cualquier página
         navigate('/login');
         // Limpiamos el estado en el siguiente tick del event loop
         setTimeout(() => {
             logout();
-        }, 300); // 300ms es la duración de la animación promedio de Framer Motion
+        }, 300);
     };
 
     // Alternar visibilidad del dropdown del usuario
@@ -35,13 +34,13 @@ const Header = () => {
         setIsDropdownOpen(!isDropdownOpen);
     };
 
-    // Close mobile menu on route change
+    // Cerrar el menú móvil al cambiar de ruta
     useEffect(() => {
         setIsMenuOpen(false);
         setIsDropdownOpen(false);
     }, [location.pathname]);
 
-    // Close mobile menu when clicking outside
+    // Cerrar el menú móvil al hacer clic fuera de él
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (headerRef.current && !headerRef.current.contains(event.target)) {

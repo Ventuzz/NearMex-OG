@@ -53,11 +53,11 @@ const Destinations = () => {
         const fetchDestinationData = async () => {
             setLoading(true);
             try {
-                // Fetch destination details
+                // Obtener los datos del destino
                 const destResponse = await api.get(`/destinations/${id}`);
                 setDestination(destResponse.data);
 
-                // Fetch all destinations to pick related ones
+                // Obtener todos los destinos para elegir los relacionados
                 const allResponse = await api.get('/destinations');
                 const related = allResponse.data.filter(d => d.id !== id).slice(0, 4);
                 setRelatedDestinations(related);
