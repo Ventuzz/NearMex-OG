@@ -34,6 +34,11 @@ const Header = () => {
         setIsDropdownOpen(!isDropdownOpen);
     };
 
+    const closeMenus = () => {
+        setIsDropdownOpen(false);
+        setIsMenuOpen(false);
+    };
+
     // Cerrar el menú móvil al cambiar de ruta
     useEffect(() => {
         setIsMenuOpen(false);
@@ -138,27 +143,75 @@ const Header = () => {
                 }
                 .profile-dropdown-menu {
                     position: static !important;
-                    box-shadow: none !important;
+                    background-color: #1a1a1a !important;
+                    padding: 10px 0 !important;
+                    width: calc(100% - 40px) !important;
+                    margin: 10px auto 20px auto !important;
+                    border-radius: 8px !important;
+                    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5) !important;
+                }
+                .header-area .main-nav .nav li .profile-dropdown-menu li {
+                    height: auto !important;
                     background-color: transparent !important;
-                    padding: 0 !important;
-                    width: 100% !important;
                     border-radius: 0 !important;
+                    border: none !important;
                 }
                 .header-area .main-nav .nav li > a[href="#!"] {
                     justify-content: center !important;
                 }
                 .header-area .main-nav .nav li .profile-dropdown-menu li a {
-                    color: #333 !important;
-                    padding: 10px 0 !important;
-                    font-size: 14px !important;
-                    justify-content: center !important;
+                    justify-content: flex-start !important;
+                    background-color: transparent !important;
+                    height: auto !important;
+                    line-height: normal !important;
+                    border-radius: 0 !important;
+                    color: #ffffff !important;
+                    padding: 12px 20px !important;
                 }
                 .header-area .main-nav .nav li .profile-dropdown-menu li a:hover {
-                    color: #660000 !important;
-                    background-color: transparent !important;
+                    background-color: #333333 !important;
+                    color: #ffffff !important;
                 }
                 .profile-dropdown-menu li a i {
-                    color: #660000 !important;
+                    color: #ffffff !important;
+                }
+                /* Admin link specific background reset */
+                .header-area .main-nav .nav li .profile-dropdown-menu li[style*="background-color: #660000"] a {
+                    background-color: transparent !important;
+                }
+
+                /* Reseting main mobile navigation to dark theme */
+                .background-header .main-nav .nav,
+                .header-area .main-nav .nav {
+                    background-color: #1a1a1a !important;
+                    border-radius: 0 0 15px 15px !important;
+                    padding-bottom: 10px !important;
+                }
+                .background-header .main-nav .nav li,
+                .header-area .main-nav .nav li {
+                    background-color: transparent !important;
+                    border-top: 1px solid #333 !important;
+                    height: auto !important;
+                    border-radius: 0 !important;
+                }
+                .header-area .main-nav .nav li:first-child {
+                    border-top: none !important;
+                }
+                .background-header .main-nav .nav li a,
+                .header-area .main-nav .nav li a {
+                    background-color: transparent !important;
+                    color: #fff !important;
+                    height: auto !important;
+                    line-height: normal !important;
+                    padding: 15px 20px !important;
+                    border-radius: 0 !important;
+                }
+                .background-header .main-nav .nav li a:hover,
+                .header-area .main-nav .nav li a:hover,
+                .header-area.header-sticky .nav li a.active,
+                .header-area .main-nav .nav li a.active {
+                    color: #fff !important;
+                    background-color: rgba(255, 255, 255, 0.10) !important;
                 }
             }
         `}
@@ -215,28 +268,28 @@ const Header = () => {
                                                     <ul className="profile-dropdown-menu">
                                                         {user.role === 'admin' && (
                                                             <li style={{ backgroundColor: '#660000', marginBottom: '5px', borderRadius: '5px' }}>
-                                                                <Link to="/admin" onClick={() => setIsDropdownOpen(false)} style={{ color: '#ffffff', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                                                                <Link to="/admin" onClick={closeMenus} style={{ color: '#ffffff', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
                                                                     <i className="fa fa-cogs" style={{ color: '#ffffff', marginRight: '8px' }}></i> Panel Admin
                                                                 </Link>
                                                             </li>
                                                         )}
                                                         <li>
-                                                            <Link to="/profile?tab=info" onClick={() => setIsDropdownOpen(false)}>
+                                                            <Link to="/profile?tab=info" onClick={closeMenus}>
                                                                 <i className="fa fa-info-circle"></i> Información del Perfil
                                                             </Link>
                                                         </li>
                                                         <li>
-                                                            <Link to="/profile?tab=favorites" onClick={() => setIsDropdownOpen(false)}>
+                                                            <Link to="/profile?tab=favorites" onClick={closeMenus}>
                                                                 <i className="fa fa-heart"></i> Mis Favoritos
                                                             </Link>
                                                         </li>
                                                         <li>
-                                                            <Link to="/profile?tab=reviews" onClick={() => setIsDropdownOpen(false)}>
+                                                            <Link to="/profile?tab=reviews" onClick={closeMenus}>
                                                                 <i className="fa fa-star"></i> Mis Reseñas
                                                             </Link>
                                                         </li>
                                                         <li style={{ borderTop: '1px solid #333', marginTop: '5px', paddingTop: '5px' }}>
-                                                            <a href="#!" onClick={() => { handleLogout(); setIsDropdownOpen(false); }}>
+                                                            <a href="#!" onClick={() => { handleLogout(); closeMenus(); }}>
                                                                 <i className="fa fa-sign-out"></i> Cerrar Sesión
                                                             </a>
                                                         </li>
