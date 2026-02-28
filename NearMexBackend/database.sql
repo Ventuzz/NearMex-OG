@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
     avatar VARCHAR(255) DEFAULT NULL,
     address TEXT DEFAULT NULL,
     bio TEXT DEFAULT NULL, 
+    reset_password_token VARCHAR(255) DEFAULT NULL,
+    reset_password_expires DATETIME DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

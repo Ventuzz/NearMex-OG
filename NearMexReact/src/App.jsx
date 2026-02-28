@@ -13,6 +13,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 import Nearby from './pages/Nearby';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Componente para proteger las rutas de administrador
 const AdminRoute = ({ children }) => {
@@ -54,6 +56,8 @@ function App() {
           <Route path="admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
         </Route>
       </Routes>
     </AuthProvider>

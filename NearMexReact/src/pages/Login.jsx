@@ -74,7 +74,8 @@ const Login = () => {
                                     </div>
                                     <button type="submit" id="login-btn" className="btn w-100 btn-theme" style={{ backgroundColor: '#660000', borderColor: '#660000', color: 'white' }}>Inicia Sesión</button>
                                 </form>
-                                <div className="mt-3 text-center">
+                                <div className="mt-4 text-center">
+                                    <p className="mb-2"><Link to="/forgot-password" style={{ color: '#660000', textDecoration: 'underline' }}>¿Olvidaste tu contraseña?</Link></p>
                                     <p>¿No tienes una cuenta? <Link to="/register" style={{ color: '#660000', fontWeight: 'bold' }}>Regístrate aquí</Link></p>
                                 </div>
                             </div>
