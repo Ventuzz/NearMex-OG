@@ -84,6 +84,20 @@ const Header = () => {
         };
     }, []);
 
+    // Cerrar menú móvil al redimensionar a pantalla de escritorio
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth > 991 && isMenuOpen) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [isMenuOpen]);
+
     return (
         <>
             <style>

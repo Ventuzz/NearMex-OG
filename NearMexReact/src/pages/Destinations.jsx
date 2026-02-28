@@ -59,7 +59,7 @@ const Destinations = () => {
 
                 // Obtener todos los destinos para elegir los relacionados
                 const allResponse = await api.get('/destinations');
-                const related = allResponse.data.filter(d => d.id !== id).slice(0, 4);
+                const related = allResponse.data.filter(d => String(d.id) !== id).slice(0, 4);
                 setRelatedDestinations(related);
 
                 // Verificar si el destino ya es favorito consultando la API
@@ -404,7 +404,7 @@ const Destinations = () => {
                                                                 <div className="mb-3">
                                                                     <textarea
                                                                         className="form-control"
-                                                                        placeholder="Cuéntale a otros sobre tu experiencia (mínimo 10 caracteres)..."
+                                                                        placeholder="Cuéntale a otros sobre tu experiencia..."
                                                                         value={newReview.comment}
                                                                         onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
                                                                         required
@@ -427,7 +427,12 @@ const Destinations = () => {
                                                                             <i className="fa fa-user-circle" style={{ fontSize: '40px', color: '#ccc', marginRight: '10px' }}></i>
                                                                         )}
                                                                         <div>
-                                                                            <strong style={{ fontSize: '1.1em', display: 'block', marginBottom: '-5px' }}>{review.username}</strong>
+                                                                            <strong style={{ fontSize: '1.1em', display: 'block', marginBottom: '-5px' }}>
+                                                                                {review.username}
+                                                                                {review.updated_at && review.created_at && new Date(review.updated_at) > new Date(review.created_at) && (
+                                                                                    <span style={{ fontSize: '0.7em', color: '#888', marginLeft: '5px', fontWeight: 'normal' }}>(Editado)</span>
+                                                                                )}
+                                                                            </strong>
                                                                             <span className="text-warning">{'★'.repeat(review.rating)}</span>
                                                                         </div>
                                                                     </div>

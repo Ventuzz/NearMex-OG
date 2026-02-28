@@ -51,13 +51,13 @@ exports.getDestinationById = async (req, res) => {
  * Crea un nuevo destino (Solo Admin)
  */
 exports.createDestination = async (req, res) => {
-    const { id, name, full_name, description, image, category, map_url, schedule, tags, latitude, longitude } = req.body;
+    const { name, full_name, description, image, category, map_url, schedule, tags, latitude, longitude } = req.body;
     try {
         const tagsString = Array.isArray(tags) ? JSON.stringify(tags) : tags;
 
         await db.execute(
-            'INSERT INTO destinations (id, name, full_name, description, image, category, map_url, schedule, tags, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [id || name.toLowerCase().replace(/\s+/g, '-'), name, full_name || '', description, image, category, map_url || '', schedule || '', tagsString || '[]', latitude || null, longitude || null]
+            'INSERT INTO destinations (name, full_name, description, image, category, map_url, schedule, tags, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [name, full_name || '', description, image, category, map_url || '', schedule || '', tagsString || '[]', latitude || null, longitude || null]
         );
         res.status(201).json({ message: 'Destino creado exitosamente' });
     } catch (error) {

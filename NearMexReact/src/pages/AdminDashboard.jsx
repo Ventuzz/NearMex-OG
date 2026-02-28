@@ -26,7 +26,7 @@ const AdminDashboard = () => {
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
-        id: '', name: '', full_name: '', description: '', image: '', category: 'Monumento',
+        name: '', full_name: '', description: '', image: '', category: 'Monumento',
         map_url: '', schedule: '', tags: '', latitude: '', longitude: ''
     });
 
@@ -98,7 +98,7 @@ const AdminDashboard = () => {
 
     const openCreateForm = () => {
         setFormData({
-            id: '', name: '', full_name: '', description: '', image: '', category: 'Monumento',
+            name: '', full_name: '', description: '', image: '', category: 'Monumento',
             map_url: '', schedule: '', tags: '', latitude: '', longitude: ''
         });
         setEditingId(null);
@@ -279,11 +279,7 @@ const AdminDashboard = () => {
                                                 <h5>{editingId ? 'Editar Destino' : 'Nuevo Destino'}</h5>
                                                 <form onSubmit={saveDestination}>
                                                     <div className="row">
-                                                        <div className="col-md-6 mb-3">
-                                                            <label className="form-label">ID (Ej. pto-vallarta)</label>
-                                                            <input type="text" className="form-control" name="id" value={formData.id} onChange={handleInputChange} disabled={!!editingId} required={!editingId} />
-                                                        </div>
-                                                        <div className="col-md-6 mb-3">
+                                                        <div className="col-md-12 mb-3">
                                                             <label className="form-label">Nombre Corto</label>
                                                             <input type="text" className="form-control" name="name" value={formData.name} onChange={handleInputChange} required />
                                                         </div>

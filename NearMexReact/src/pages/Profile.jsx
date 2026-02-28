@@ -481,6 +481,9 @@ const Profile = () => {
                                                                 </h5>
                                                                 <small className="text-muted">
                                                                     {new Date(review.created_at).toLocaleDateString()}
+                                                                    {review.updated_at && review.created_at && new Date(review.updated_at) > new Date(review.created_at) && (
+                                                                        <span style={{ fontStyle: 'italic', marginLeft: '5px' }}>(Editado)</span>
+                                                                    )}
                                                                 </small>
                                                             </div>
                                                             <div className="mb-2">

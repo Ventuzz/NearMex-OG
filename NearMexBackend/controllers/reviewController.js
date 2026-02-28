@@ -4,6 +4,7 @@
  */
 
 const db = require('../config/db');
+const { sendReviewDeletionEmail } = require('../services/emailService');
 
 /**
  * Obtiene todas las reseñas de un destino específico.
@@ -17,7 +18,7 @@ exports.getReviews = async (req, res) => {
             `SELECT r.*, u.username, u.avatar 
              FROM reviews r 
              JOIN users u ON r.user_id = u.id 
-             WHERE r.destination_id = ? 
+             WHERE r.destination_id = ? AND r.is_visible = TRUE
              ORDER BY r.created_at DESC`,
             [destinationId]
         );
@@ -40,7 +41,7 @@ exports.getUserReviews = async (req, res) => {
             `SELECT r.*, d.name as destination_name
              FROM reviews r 
              JOIN destinations d ON r.destination_id = d.id
-             WHERE r.user_id = ? 
+             WHERE r.user_id = ? AND r.is_visible = TRUE
              ORDER BY r.created_at DESC`,
             [userId]
         );
@@ -106,7 +107,7 @@ exports.deleteReview = async (req, res) => {
 
     try {
         const [result] = await db.execute(
-            'DELETE FROM reviews WHERE id = ? AND user_id = ?',
+            'UPDATE reviews SET is_visible = FALSE WHERE id = ? AND user_id = ?',
             [id, userId]
         );
 
@@ -128,13 +129,31 @@ exports.deleteReviewAdmin = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const [result] = await db.execute(
-            'DELETE FROM reviews WHERE id = ?',
+        // Obtenemos información de la reseña, el usuario y el destino ANTES de ocultarla
+        const [reviewInfo] = await db.execute(
+            `SELECT u.email, u.username, d.name AS destination_name 
+             FROM reviews r
+             JOIN users u ON r.user_id = u.id
+             JOIN destinations d ON r.destination_id = d.id
+             WHERE r.id = ?`,
             [id]
         );
 
-        if (result.affectedRows === 0) {
+        if (reviewInfo.length === 0) {
             return res.status(404).json({ message: 'Reseña no encontrada' });
+        }
+
+        const { email, username, destination_name } = reviewInfo[0];
+
+        // Se oculta la reseña en la DB
+        const [result] = await db.execute(
+            'UPDATE reviews SET is_visible = FALSE WHERE id = ?',
+            [id]
+        );
+
+        if (result.affectedRows > 0) {
+            // Se envía el correo de notificación en segundo plano
+            sendReviewDeletionEmail(email, username, destination_name);
         }
 
         res.json({ message: 'Reseña eliminada exitosamente por el administrador' });
