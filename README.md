@@ -79,7 +79,6 @@ cd NearMex1
 
 ## ⚠️ Notas Importantes
 
-*   **No subas el archivo `.env` al repositorio**: Contiene información sensible como contraseñas. Asegúrate de que esté en el `.gitignore`.
 *   Si cambias el puerto del backend, recuerda actualizar la URL de la API en `NearMexReact/src/services/api.js`.
 
 ## Estructura del Proyecto
