@@ -91,7 +91,7 @@ const Destinations = () => {
                 // Verificar si el destino ya es favorito consultando la API
                 if (user) {
                     const favRes = await api.get('/favorites/ids');
-                    setIsFavorite(favRes.data.includes(id));
+                    setIsFavorite(favRes.data.includes(Number(id)));
                 }
 
             } catch (error) {
@@ -296,7 +296,17 @@ const Destinations = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <h3>{destination.name}</h3>
-                            <span className="breadcrumb"><Link to="/">Inicio</Link>  &gt;  <Link to="/catalog">Catálogo</Link>  &gt;  {destination.name}</span>
+                            <span className="breadcrumb">
+                                {user?.role === 'admin' ? (
+                                    <>
+                                        <Link to="/catalog">Catálogo</Link>  &gt;  {destination.name}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Link to="/">Inicio</Link>  &gt;  <Link to="/catalog">Catálogo</Link>  &gt;  {destination.name}
+                                    </>
+                                )}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -311,10 +321,10 @@ const Destinations = () => {
                             </div>
                         </div>
                         <div className="col-lg-6 align-self-center">
-                            <h4 style={{ fontSize: '33px' }}>{destination.fullName}</h4>
+                            <h4 style={{ fontSize: '33px' }}>{destination.full_name || destination.name}</h4>
                             <div style={{ marginBottom: '20px', fontSize: '18px', fontWeight: 'bold' }}>
                                 <span style={{ color: '#660000', marginRight: '15px' }}>
-                                    Categoría: <Link to="/catalog" state={{ category: destination.category }} style={{ color: '#660000', textDecoration: 'none' }}>{destination.category}</Link>
+                                    Categoría: {destination.category}
                                 </span>
                                 {destination.tags && destination.tags.length > 0 && (
                                     <span style={{ color: '#660000' }}>
@@ -429,7 +439,7 @@ const Destinations = () => {
                                                                     const match = destination.map_url.match(/src="([^"]+)"/);
                                                                     if (match && match[1]) return match[1];
                                                                 }
-                                                                return destination.map_url || `https://maps.google.com/maps?q=${encodeURIComponent(destination.category + ' ' + (destination.fullName || destination.name) + ', Guadalajara, Jalisco, Mexico')}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
+                                                                return destination.map_url || `https://maps.google.com/maps?q=${encodeURIComponent(destination.category + ' ' + (destination.full_name || destination.name) + ', Guadalajara, Jalisco, Mexico')}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
                                                             })()}
                                                         ></iframe>
                                                     </div>

@@ -147,11 +147,44 @@ const AdminDashboard = () => {
     };
 
     const handleAutoGeocode = async () => {
+        // --- 1. Intentar extraer coordenadas del iframe o URL proporcionada ---
+        if (formData.map_url) {
+            let mapUrl = formData.map_url;
+            if (mapUrl.includes('<iframe')) {
+                const srcMatch = mapUrl.match(/src="([^"]+)"/);
+                if (srcMatch && srcMatch[1]) mapUrl = srcMatch[1];
+            }
+
+            // Buscar marcadores comunes en URLs de Google Maps (!3d = Lat, !2d = Lon) o q=lat,lon
+            const latMatch = mapUrl.match(/!3d([-.\d]+)/);
+            const lonMatch = mapUrl.match(/!2d([-.\d]+)/);
+
+            const qMatch = mapUrl.match(/[?&]q=([-.\d]+),([-.\d]+)/);
+
+            if (latMatch && lonMatch) {
+                setFormData(prev => ({ ...prev, latitude: latMatch[1], longitude: lonMatch[1] }));
+                Swal.fire({ title: '¡Extraído!', text: 'Coordenadas extraídas directamente del enlace o iframe proporcionado.', icon: 'success', iconColor: '#660000', timer: 2500, showConfirmButton: false });
+                return;
+            } else if (qMatch) {
+                setFormData(prev => ({ ...prev, latitude: qMatch[1], longitude: qMatch[2] }));
+                Swal.fire({ title: '¡Extraído!', text: 'Coordenadas extraídas directamente del enlace o iframe proporcionado.', icon: 'success', iconColor: '#660000', timer: 2500, showConfirmButton: false });
+                return;
+            }
+            // Si hay URL pero no encontramos coordenadas claras, seguimos con el autocompletado por nombre.
+        }
+
+        // --- 2. Autocompletado por nombre (Nominatim API) ---
         // Usar full_name si existe, si no, usar name. Si ambos están vacíos, advertir.
         const queryName = formData.full_name || formData.name;
 
         if (!queryName) {
-            Swal.fire('Atención', 'Por favor, escribe el Nombre corto o el Nombre Completo del destino primero para poder buscarlo.', 'warning');
+            Swal.fire({
+                title: 'Atención',
+                text: 'Añade primero una URL de Google Maps o escribe el nombre del destino para poder buscar las coordenadas.',
+                icon: 'warning',
+                iconColor: '#660000',
+                confirmButtonColor: '#660000'
+            });
             return;
         }
 
@@ -182,11 +215,23 @@ const AdminDashboard = () => {
                 }));
                 Swal.fire({ title: '¡Encontrado!', text: `Coordenadas autocompletadas con éxito.\nExactitud: ${result.name || result.display_name.split(',')[0]}`, icon: 'success', iconColor: '#660000', timer: 2500, showConfirmButton: false });
             } else {
-                Swal.fire('No encontrado', `No se encontraron coordenadas exactas en Jalisco para "${queryName}". Intenta ser más específico en el nombre o ingrésalas manualmente.`, 'info');
+                Swal.fire({
+                    title: 'No encontrado',
+                    text: `No se encontraron coordenadas exactas en Jalisco para "${queryName}". Intenta ser más específico en el nombre o ingrésalas manualmente.`,
+                    icon: 'info',
+                    iconColor: '#660000',
+                    confirmButtonColor: '#660000'
+                });
             }
         } catch (error) {
             console.error("Error geocoding:", error);
-            Swal.fire('Error', 'Hubo un problema de conexión al buscar las coordenadas.', 'error');
+            Swal.fire({
+                title: 'Error',
+                text: 'Hubo un problema de conexión al buscar las coordenadas.',
+                icon: 'error',
+                iconColor: '#660000',
+                confirmButtonColor: '#660000'
+            });
         } finally {
             setIsGeocoding(false);
         }
