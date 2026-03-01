@@ -6,6 +6,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 
+// Interpretar el código WMO del clima (https://open-meteo.com/en/docs)
+const getWeatherIconAndDescription = (code) => {
+    if (code === 0) return { icon: 'fa-sun-o', desc: 'Despejado', color: '#f39c12' };
+    if (code === 1 || code === 2 || code === 3) return { icon: 'fa-cloud', desc: 'Parcialmente Nublado', color: '#95a5a6' };
+    if (code === 45 || code === 48) return { icon: 'fa-align-justify', desc: 'Niebla', color: '#7f8c8d' };
+    if (code >= 51 && code <= 67) return { icon: 'fa-tint', desc: 'Lluvia / Llovizna', color: '#3498db' };
+    if (code >= 71 && code <= 77) return { icon: 'fa-snowflake-o', desc: 'Nieve', color: '#bdc3c7' };
+    if (code >= 80 && code <= 82) return { icon: 'fa-umbrella', desc: 'Aguaceros', color: '#2980b9' };
+    if (code >= 95) return { icon: 'fa-bolt', desc: 'Tormenta Eléctrica', color: '#8e44ad' };
+    return { icon: 'fa-thermometer-half', desc: 'Desconocido', color: '#666' };
+};
+
 /**
  * Página de Detalle del Destino.
  * Muestra información completa de un destino, incluyendo mapa (placeholder) y sistema de reseñas
@@ -22,6 +34,7 @@ const Destinations = () => {
     const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
     const [editingReview, setEditingReview] = useState(null);
     const [activeTab, setActiveTab] = useState('map');
+    const [weather, setWeather] = useState(null);
 
     const handleDestinationClick = (e, destinationId) => {
         if (!user) {
@@ -56,6 +69,19 @@ const Destinations = () => {
                 // Obtener los datos del destino
                 const destResponse = await api.get(`/destinations/${id}`);
                 setDestination(destResponse.data);
+
+                // Obtener Clima en tiempo real de Open-Meteo
+                if (destResponse.data.latitude && destResponse.data.longitude) {
+                    try {
+                        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${destResponse.data.latitude}&longitude=${destResponse.data.longitude}&current_weather=true`);
+                        const weatherData = await weatherRes.json();
+                        if (weatherData.current_weather) {
+                            setWeather(weatherData.current_weather);
+                        }
+                    } catch (e) {
+                        console.error("Error fetching weather:", e);
+                    }
+                }
 
                 // Obtener todos los destinos para elegir los relacionados
                 const allResponse = await api.get('/destinations');
@@ -234,8 +260,19 @@ const Destinations = () => {
     if (loading) {
         return (
             <PageTransition>
-                <div className="container" style={{ marginTop: '150px', textAlign: 'center' }}>
-                    <h2>Cargando...</h2>
+                <div className="page-heading header-text">
+                    <div className="container">
+                        <div className="row">
+                            <div className="col-lg-12">
+                                <h3>Cargando Destino...</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="single-product section" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    <div className="spinner-border" role="status" style={{ width: '3rem', height: '3rem', color: '#660000', marginBottom: '20px' }}>
+                    </div>
+                    <h4 style={{ color: '#660000' }}>Cargando Destino...</h4>
                 </div>
             </PageTransition>
         );
@@ -292,9 +329,34 @@ const Destinations = () => {
                             </div>
                             <p style={{ fontSize: '20px', marginBottom: '15px' }}>{destination.description}</p>
                             {destination.schedule && (
-                                <div style={{ fontSize: '18px', color: '#666', marginBottom: '30px', display: 'flex', alignItems: 'center', marginLeft: '-6px' }}>
+                                <div style={{ fontSize: '18px', color: '#666', marginBottom: weather ? '15px' : '30px', display: 'flex', alignItems: 'center', marginLeft: '-6px' }}>
                                     <i className="fa fa-clock-o" style={{ color: '#660000', marginRight: '8px', fontSize: '20px' }}></i>
                                     <span><strong>Horario:</strong> {destination.schedule}</span>
+                                </div>
+                            )}
+
+                            {weather && (
+                                <div style={{
+                                    backgroundColor: '#f8f9fa',
+                                    padding: '15px 20px',
+                                    borderRadius: '10px',
+                                    marginBottom: '30px',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    border: '1px solid #eee',
+                                    boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+                                    minWidth: '250px'
+                                }}>
+                                    <i className={`fa ${getWeatherIconAndDescription(weather.weathercode).icon}`} style={{ fontSize: '40px', color: getWeatherIconAndDescription(weather.weathercode).color, marginRight: '20px' }}></i>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: '12px', color: '#999', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '2px' }}>Clima Actual</div>
+                                        <div style={{ fontSize: '26px', fontWeight: 'bold', color: '#1a1a1a', lineHeight: '1' }}>
+                                            {weather.temperature}°C
+                                        </div>
+                                        <div style={{ fontSize: '16px', color: '#666', marginTop: '2px' }}>
+                                            {getWeatherIconAndDescription(weather.weathercode).desc}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 

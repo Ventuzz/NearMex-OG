@@ -313,7 +313,7 @@ const Header = () => {
                                         </>
                                     ) : (
                                         <>
-                                            <li><NavLink to="/login" className={({ isActive }) => isActive ? "active" : ""}>Iniciar Sesión</NavLink></li>
+                                            <li><NavLink to="/login" className={({ isActive }) => isActive ? "active" : ""} style={{ fontSize: '18px', fontWeight: '500' }}>Iniciar Sesión</NavLink></li>
                                         </>
                                     )}
                                 </ul>

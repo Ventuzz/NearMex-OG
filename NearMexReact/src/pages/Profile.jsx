@@ -399,12 +399,12 @@ const Profile = () => {
                                                     </div>
                                                 ) : (
                                                     <div>
-                                                        {profileData?.address && (
-                                                            <p style={{ marginTop: '10px', marginBottom: '20px', fontSize: '18px' }}>
-                                                                <i className="fa fa-map-marker text-muted" style={{ marginRight: '8px', fontSize: '18px' }}></i>
-                                                                {profileData.address}
-                                                            </p>
-                                                        )}
+                                                        <h6 className="mt-2 mb-2">Dirección</h6>
+                                                        <p style={{ whiteSpace: 'pre-wrap', color: profileData?.address ? '#333' : '#999', fontStyle: profileData?.address ? 'normal' : 'italic', fontSize: '18px', marginBottom: '20px' }}>
+                                                            {profileData?.address || 'Aún no tienes una dirección registrada.'}
+                                                        </p>
+
+                                                        <h6 className="mb-2">Biografía</h6>
                                                         <p style={{ whiteSpace: 'pre-wrap', color: profileData?.bio ? '#333' : '#999', fontStyle: profileData?.bio ? 'normal' : 'italic', minHeight: '80px', fontSize: '18px' }}>
                                                             {profileData?.bio || 'Aún no tienes una biografía. ¡Anímate a escribir una!'}
                                                         </p>

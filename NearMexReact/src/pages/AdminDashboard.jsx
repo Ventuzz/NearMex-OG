@@ -29,6 +29,7 @@ const AdminDashboard = () => {
         name: '', full_name: '', description: '', image: '', category: 'Monumento',
         map_url: '', schedule: '', tags: '', latitude: '', longitude: ''
     });
+    const [isGeocoding, setIsGeocoding] = useState(false);
 
     // Estado de Reseñas
     const [selectedDestination, setSelectedDestination] = useState('');
@@ -145,6 +146,52 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleAutoGeocode = async () => {
+        // Usar full_name si existe, si no, usar name. Si ambos están vacíos, advertir.
+        const queryName = formData.full_name || formData.name;
+
+        if (!queryName) {
+            Swal.fire('Atención', 'Por favor, escribe el Nombre corto o el Nombre Completo del destino primero para poder buscarlo.', 'warning');
+            return;
+        }
+
+        setIsGeocoding(true);
+        // Mostrar alerta de carga minimalista
+        Swal.fire({
+            title: 'Buscando Coordenadas...',
+            text: `Buscando: ${queryName}, Jalisco, Mexico`,
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            // Limitar la búsqueda al estado de Jalisco, México para mayor precisión.
+            const searchQuery = encodeURIComponent(`${queryName}, Jalisco, Mexico`);
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}&limit=1`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                const result = data[0];
+                setFormData(prev => ({
+                    ...prev,
+                    latitude: result.lat,
+                    longitude: result.lon
+                }));
+                Swal.fire({ title: '¡Encontrado!', text: `Coordenadas autocompletadas con éxito.\nExactitud: ${result.name || result.display_name.split(',')[0]}`, icon: 'success', iconColor: '#660000', timer: 2500, showConfirmButton: false });
+            } else {
+                Swal.fire('No encontrado', `No se encontraron coordenadas exactas en Jalisco para "${queryName}". Intenta ser más específico en el nombre o ingrésalas manualmente.`, 'info');
+            }
+        } catch (error) {
+            console.error("Error geocoding:", error);
+            Swal.fire('Error', 'Hubo un problema de conexión al buscar las coordenadas.', 'error');
+        } finally {
+            setIsGeocoding(false);
+        }
+    };
+
     const handleDeleteDestination = (id) => {
         Swal.fire({
             title: '¿Estás seguro?',
@@ -224,7 +271,7 @@ const AdminDashboard = () => {
                 <div className="container">
                     <div className="row">
                         <div className="col-lg-12">
-                            <h3>Panel de Administración</h3>
+                            <h3 style={{ fontSize: 'clamp(1rem, 7.5vw, 2.5rem)' }}>Panel de Administración</h3>
                         </div>
                     </div>
                 </div>
@@ -313,13 +360,30 @@ const AdminDashboard = () => {
                                                             <label className="form-label">URL de Google Maps (Iframe Src)</label>
                                                             <input type="text" className="form-control" name="map_url" value={formData.map_url} onChange={handleInputChange} />
                                                         </div>
-                                                        <div className="col-md-6 mb-3">
-                                                            <label className="form-label">Latitud (Ej. 20.676667)</label>
-                                                            <input type="number" step="any" className="form-control" name="latitude" value={formData.latitude} onChange={handleInputChange} />
-                                                        </div>
-                                                        <div className="col-md-6 mb-3">
-                                                            <label className="form-label">Longitud (Ej. -103.3475)</label>
-                                                            <input type="number" step="any" className="form-control" name="longitude" value={formData.longitude} onChange={handleInputChange} />
+                                                        <div className="col-md-12 mb-3">
+                                                            <div className="d-flex justify-content-between align-items-center mb-1">
+                                                                <label className="form-label mb-0">Coordenadas del Mapa (Requeridas para el Clima)</label>
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn btn-sm"
+                                                                    style={{ backgroundColor: '#f8f9fa', border: '1px solid #ced4da', color: '#660000', fontWeight: '500' }}
+                                                                    onClick={handleAutoGeocode}
+                                                                    disabled={isGeocoding || (!formData.name && !formData.full_name)}
+                                                                >
+                                                                    <i className={`fa ${isGeocoding ? 'fa-spinner fa-spin' : 'fa-crosshairs'} me-1`}></i>
+                                                                    {isGeocoding ? 'Buscando...' : 'Autocompletar'}
+                                                                </button>
+                                                            </div>
+                                                            <div className="row mt-2">
+                                                                <div className="col-md-6 mb-3 mb-md-0">
+                                                                    <label className="form-label">Latitud</label>
+                                                                    <input type="number" step="any" className="form-control" name="latitude" value={formData.latitude} onChange={handleInputChange} placeholder="(Ej. 20.6766)" />
+                                                                </div>
+                                                                <div className="col-md-6">
+                                                                    <label className="form-label">Longitud</label>
+                                                                    <input type="number" step="any" className="form-control" name="longitude" value={formData.longitude} onChange={handleInputChange} placeholder="(Ej. -103.3475)" />
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                         <div className="col-md-12 mb-3">
                                                             <label className="form-label">Etiquetas (separadas por coma)</label>
