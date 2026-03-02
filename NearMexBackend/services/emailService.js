@@ -89,3 +89,47 @@ exports.sendPasswordResetEmail = async (toEmail, username, resetUrl) => {
         console.error("Error al enviar correo de recuperación:", error);
     }
 };
+
+/**
+ * Envia un correo electrónico de bienvenida a un usuario recién registrado.
+ * 
+ * @param {string} toEmail - El correo electrónico del usuario.
+ * @param {string} username - El nombre del usuario.
+ */
+exports.sendWelcomeEmail = async (toEmail, username) => {
+    try {
+        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+            console.warn("ADVERTENCIA: Credenciales SMTP no configuradas. El correo de bienvenida no se enviará.");
+            return;
+        }
+
+        const mailOptions = {
+            from: `"Equipo NearMex" <${process.env.SMTP_USER}>`,
+            to: toEmail,
+            subject: '¡Bienvenido a NearMex!',
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #660000; text-align: center;">¡Hola ${username}, bienvenido a NearMex!</h2>
+                    <p style="font-size: 16px;">Estamos muy contentos de que te hayas unido a nuestra comunidad. NearMex es la plataforma ideal para descubrir, guardar y reseñar tus destinos favoritos.</p>
+                    <p style="font-size: 16px;">Aquí tienes algunas cosas que puedes hacer ahora mismo:</p>
+                    <ul style="font-size: 16px; color: #555;">
+                        <li><strong>Explorar el Catálogo:</strong> Descubre nuevos lugares y maravillas por visitar.</li>
+                        <li><strong>Crear tu Biblioteca:</strong> Guarda destinos en tus favoritos para tu próximo viaje.</li>
+                        <li><strong>Compartir tu Experiencia:</strong> Escribe reseñas para calificar los lugares en los que ya has estado.</li>
+                        <li><strong>Personalizar tu Perfil:</strong> Agrega tu biografía y foto de perfil.</li>
+                    </ul>
+                    <br>
+                    <p style="font-size: 14px;">Si tienes alguna pregunta o necesitas ayuda, no dudes en ponerte en contacto con nosotros.</p>
+                    <p style="font-size: 14px;">¡Que tengas un excelente viaje!</p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #999; text-align: center;">Has recibido este correo porque te registraste en NearMex. Por favor no respondas a este mensaje automático.</p>
+                </div>
+            `,
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`Correo de bienvenida enviado a ${toEmail}. Message ID: ${info.messageId}`);
+    } catch (error) {
+        console.error("Error al enviar correo de bienvenida:", error);
+    }
+};

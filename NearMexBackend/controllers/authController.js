@@ -2,7 +2,7 @@ const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { sendPasswordResetEmail } = require('../services/emailService');
+const { sendPasswordResetEmail, sendWelcomeEmail } = require('../services/emailService');
 
 /**
  * Controlador de Autenticación.
@@ -24,6 +24,9 @@ exports.register = async (req, res) => {
 
         // Insertar usuario en la base de datos
         await db.execute('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword]);
+
+        // Enviar correo de bienvenida 
+        sendWelcomeEmail(email, username);
 
         res.status(201).json({ message: 'Usuario registrado exitosamente' });
     } catch (error) {
