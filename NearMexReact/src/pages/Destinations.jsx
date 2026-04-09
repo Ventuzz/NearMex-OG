@@ -8,14 +8,14 @@ import { AuthContext } from '../context/AuthContext';
 
 // Interpretar el código WMO del clima (https://open-meteo.com/en/docs)
 const getWeatherIconAndDescription = (code) => {
-    if (code === 0) return { icon: 'fa-sun-o', desc: 'Despejado', color: '#f39c12' };
+    if (code === 0) return { icon: 'fa-sun', desc: 'Despejado', color: '#f39c12' };
     if (code === 1 || code === 2 || code === 3) return { icon: 'fa-cloud', desc: 'Parcialmente Nublado', color: '#95a5a6' };
-    if (code === 45 || code === 48) return { icon: 'fa-align-justify', desc: 'Niebla', color: '#7f8c8d' };
-    if (code >= 51 && code <= 67) return { icon: 'fa-tint', desc: 'Lluvia / Llovizna', color: '#3498db' };
-    if (code >= 71 && code <= 77) return { icon: 'fa-snowflake-o', desc: 'Nieve', color: '#bdc3c7' };
-    if (code >= 80 && code <= 82) return { icon: 'fa-umbrella', desc: 'Aguaceros', color: '#2980b9' };
+    if (code === 45 || code === 48) return { icon: 'fa-smog', desc: 'Niebla', color: '#7f8c8d' };
+    if (code >= 51 && code <= 67) return { icon: 'fa-droplet', desc: 'Lluvia / Llovizna', color: '#3498db' };
+    if (code >= 71 && code <= 77) return { icon: 'fa-snowflake', desc: 'Nieve', color: '#bdc3c7' };
+    if (code >= 80 && code <= 82) return { icon: 'fa-cloud-showers-heavy', desc: 'Aguaceros', color: '#2980b9' };
     if (code >= 95) return { icon: 'fa-bolt', desc: 'Tormenta Eléctrica', color: '#8e44ad' };
-    return { icon: 'fa-thermometer-half', desc: 'Desconocido', color: '#666' };
+    return { icon: 'fa-temperature-half', desc: 'Desconocido', color: '#666' };
 };
 
 /**
@@ -357,7 +357,7 @@ const Destinations = () => {
                                     boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
                                     minWidth: '250px'
                                 }}>
-                                    <i className={`fa ${getWeatherIconAndDescription(weather.weathercode).icon}`} style={{ fontSize: '40px', color: getWeatherIconAndDescription(weather.weathercode).color, marginRight: '20px' }}></i>
+                                    <i className={`fa-solid ${getWeatherIconAndDescription(weather.weathercode).icon}`} style={{ fontSize: '40px', color: getWeatherIconAndDescription(weather.weathercode).color, marginRight: '20px' }}></i>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontSize: '12px', color: '#999', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '2px' }}>Clima Actual</div>
                                         <div style={{ fontSize: '26px', fontWeight: 'bold', color: '#1a1a1a', lineHeight: '1' }}>

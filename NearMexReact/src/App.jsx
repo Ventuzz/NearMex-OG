@@ -52,7 +52,7 @@ function App() {
           <Route path="nearby" element={<UserRoute><Nearby /></UserRoute>} />
           <Route path="destination/:id" element={<Destinations />} />
           <Route path="contact" element={<Contact />} />
-          <Route path="profile" element={<Profile />} />
+          <Route path="profile" element={<UserRoute><Profile /></UserRoute>} />
           <Route path="admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />

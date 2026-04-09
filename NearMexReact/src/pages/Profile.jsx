@@ -40,13 +40,6 @@ const Profile = () => {
         }
     }, [location.search, activeTab]);
 
-    // Redirigir si no hay usuario (protección)
-    useEffect(() => {
-        if (!user) {
-            navigate('/login');
-        }
-    }, [user, navigate]);
-
     // Cargar favoritos del usuario desde la API
     useEffect(() => {
         const fetchFavoritesData = async () => {
