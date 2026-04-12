@@ -30,10 +30,10 @@ git config --global user.name "$GIT_NAME"
 # 2. Gestion de Directorios
 REPO_DIR=$(basename "$REPO_URL" .git)
 if [ ! -d "$REPO_DIR" ]; then
-    git clone "$REPO_URL" || exit 1
+    git clone -b automatización "$REPO_URL" || exit 1
 fi
 cd "$REPO_DIR" || exit
-git pull origin main
+git pull origin automatización
 
 # 3. Configuracion de Archivos
 # Backend
