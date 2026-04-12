@@ -125,6 +125,11 @@ const QuestionItem = ({ question, user, onDelete }) => {
                         <div key={ans.id} className="mb-3 p-2 bg-white rounded shadow-sm">
                             <div className="d-flex justify-content-between">
                                 <div className="d-flex align-items-center mb-1">
+                                    {(user && user.userId === ans.user_id && user.avatar) || ans.avatar ? (
+                                        <img src={(user && user.userId === ans.user_id && user.avatar) ? user.avatar : ans.avatar} alt={ans.username} style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', marginRight: '8px' }} />
+                                    ) : (
+                                        <i className="fa fa-user-circle" style={{ fontSize: '30px', color: '#ccc', marginRight: '8px' }}></i>
+                                    )}
                                     <strong style={{ fontSize: '0.9em', color: '#660000' }}>{ans.username}</strong>
                                     <small className="text-muted ms-2" style={{ fontSize: '0.7em' }}>{new Date(ans.created_at).toLocaleDateString()}</small>
                                 </div>

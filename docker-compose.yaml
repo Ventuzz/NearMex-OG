@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  nearmex-db:
+    image: mariadb:10.5
+    container_name: nearmex-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: nearmex
+      MYSQL_DATABASE: nearmex_db
+      MYSQL_USER: nearmex_user
+      MYSQL_PASSWORD: nearmex
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+  nearmex-api:
+    build: ./NearMexBackend
+    container_name: nearmex-api
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      - nearmex-db
+    environment:
+      DB_HOST: nearmex-db
+      DB_USER: nearmex_user
+      DB_PASSWORD: nearmex
+      DB_NAME: nearmex_db
