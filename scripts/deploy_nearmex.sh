@@ -1,5 +1,5 @@
 #!/bin/bash
-# deploy_nearmex.sh - Despliegue de NearMex desde la carpeta scripts/
+# deploy_nearmex.sh - Despliegue de NearMex (Versión Final con gestión de .env)
 
 validar_campo() {
     local prompt_text=$1
@@ -35,36 +35,39 @@ fi
 cd "$REPO_DIR" || exit
 git pull origin automatización
 
-# 3. Configuracion de Archivos (Rutas relativas desde la raíz del repo)
-# Backend
+# 3. Configuracion de Archivos
+# A. Crear archivo .env en la RAÍZ para Docker Compose
+# Esto elimina los warnings de "variable is not set"
+echo "Configurando .env principal para Docker Compose..."
+cat <<EOF > .env
+DB_NAME=nearmex_db
+DB_USER=nearmex_user
+DB_PASS=nearmex
+EOF
+
+# B. Backend (Copiamos el .env recién creado a la carpeta del backend)
 if [ -d "NearMexBackend" ]; then
-    echo "Configurando .env en NearMexBackend..."
-    cd NearMexBackend
-    [ ! -f .env ] && touch .env
-    
-    sed -i "s/^DB_USER=.*/DB_USER=nearmex_user/" .env || echo "DB_USER=nearmex_user" >> .env
-    sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=nearmex/" .env || echo "DB_PASSWORD=nearmex" >> .env
-    sed -i "s/^DB_NAME=.*/DB_NAME=nearmex_db/" .env || echo "DB_NAME=nearmex_db" >> .env
-    sed -i "s/^DB_HOST=.*/DB_HOST=nearmex-db/" .env || echo "DB_HOST=nearmex-db" >> .env
-    cd ..
+    echo "Sincronizando configuración con NearMexBackend..."
+    cp .env NearMexBackend/.env
+    # Aseguramos que el Host apunte al contenedor de la DB
+    echo "DB_HOST=nearmex-db" >> NearMexBackend/.env
 fi
 
-# Frontend
+# C. Frontend (Configuración de API_URL)
 if [ -d "NearMexReact" ]; then
     echo "Configurando API_URL en NearMexReact..."
     cd NearMexReact
     API_FILE="src/services/api.js"
-    # Ajusta la IP para que el Frontend sepa a qué servidor hablar
     if [ -f "$API_FILE" ]; then
         sed -i "s|const API_URL = 'http://.*:5000/api'|const API_URL = 'http://$IP_PUBLICA:5000/api'|" $API_FILE
     fi
     cd ..
 fi
 
-# 4. Despliegue con Docker (Ruta específica según tu imagen)
-echo "Levantando contenedores con Docker Compose..."
-# Apuntamos a la ubicación exacta del archivo YAML dentro de workflow/aws/
-docker compose -f workflow/aws/docker-compose.yaml up -d --build
+# 4. Despliegue con Docker
+echo "Levantando contenedores con docker-compose..."
+# Ahora docker-compose encontrará el .env en la carpeta actual automáticamente
+docker-compose up -d --build
 
 # 5. Build de React y Sincronización con S3
 if [ -d "NearMexReact" ]; then
@@ -72,7 +75,7 @@ if [ -d "NearMexReact" ]; then
     cd NearMexReact
     npm install && npm audit fix --force
     npm run build
-    echo "Subiendo archivos a S3: $BUCKET_S3"
+    echo "Subiendo archivos al Bucket: $BUCKET_S3"
     aws s3 sync dist/ s3://$BUCKET_S3 --delete
     cd ..
 fi

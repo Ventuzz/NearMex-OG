@@ -21,7 +21,7 @@ services:
   # 2. Backend (Node.js)
   # Este servicio construye la imagen desde tu código fuente
   nearmex-backend:
-    build: .
+    build: ./NearMexBackend
     container_name: nearmex_backend_container
     restart: always
     ports:
