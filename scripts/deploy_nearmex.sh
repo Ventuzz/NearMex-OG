@@ -1,5 +1,5 @@
 #!/bin/bash
-# Despliegue de NearMex
+# deploy_nearmex.sh - Despliegue de NearMex desde la carpeta scripts/
 
 validar_campo() {
     local prompt_text=$1
@@ -35,31 +35,46 @@ fi
 cd "$REPO_DIR" || exit
 git pull origin automatización
 
-# 3. Configuracion de Archivos
+# 3. Configuracion de Archivos (Rutas relativas desde la raíz del repo)
 # Backend
 if [ -d "NearMexBackend" ]; then
+    echo "Configurando .env en NearMexBackend..."
     cd NearMexBackend
-    sed -i "s/DB_USER=.*/DB_USER=nearmex_user/" .env
-    sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=nearmex/" .env
-    sed -i "s/DB_NAME=.*/DB_NAME=nearmex_db/" .env
+    [ ! -f .env ] && touch .env
+    
+    sed -i "s/^DB_USER=.*/DB_USER=nearmex_user/" .env || echo "DB_USER=nearmex_user" >> .env
+    sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=nearmex/" .env || echo "DB_PASSWORD=nearmex" >> .env
+    sed -i "s/^DB_NAME=.*/DB_NAME=nearmex_db/" .env || echo "DB_NAME=nearmex_db" >> .env
+    sed -i "s/^DB_HOST=.*/DB_HOST=nearmex-db/" .env || echo "DB_HOST=nearmex-db" >> .env
     cd ..
 fi
 
 # Frontend
 if [ -d "NearMexReact" ]; then
+    echo "Configurando API_URL en NearMexReact..."
     cd NearMexReact
     API_FILE="src/services/api.js"
-    sed -i "s|const API_URL = 'http://.*:5000/api'|const API_URL = 'http://$IP_PUBLICA:5000/api'|" $API_FILE
+    # Ajusta la IP para que el Frontend sepa a qué servidor hablar
+    if [ -f "$API_FILE" ]; then
+        sed -i "s|const API_URL = 'http://.*:5000/api'|const API_URL = 'http://$IP_PUBLICA:5000/api'|" $API_FILE
+    fi
     cd ..
 fi
 
-# 4. Despliegue con Docker
-docker-compose up -d --build
+# 4. Despliegue con Docker (Ruta específica según tu imagen)
+echo "Levantando contenedores con Docker Compose..."
+# Apuntamos a la ubicación exacta del archivo YAML dentro de workflow/aws/
+docker compose -f workflow/aws/docker-compose.yaml up -d --build
 
-# 5. Build y S3
-cd NearMexReact
-npm install && npm audit fix --force
-npm run build
-aws s3 sync dist/ s3://$BUCKET_S3 --delete
+# 5. Build de React y Sincronización con S3
+if [ -d "NearMexReact" ]; then
+    echo "Iniciando build de producción para React..."
+    cd NearMexReact
+    npm install && npm audit fix --force
+    npm run build
+    echo "Subiendo archivos a S3: $BUCKET_S3"
+    aws s3 sync dist/ s3://$BUCKET_S3 --delete
+    cd ..
+fi
 
-echo "¡Es peligroso ir solo! Toma esto (Despliegue exitoso) "
+echo "¡Es peligroso ir solo! Toma esto (Despliegue exitoso)"

@@ -1,17 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Infraestructura base para NearMex
+Description: Infraestructura NearMex compatible con laboratorios AWS
 
 Resources:
-  NearMexInstance:
-    Type: AWS::EC2::Instance
-    Properties:
-      InstanceType: t3.micro
-      ImageId: ami-0ea87431b78a82070 
-      Tags:
-        - Key: Name
-          Value: NearMex-Production-Server
-      SecurityGroups:
-        - !Ref NearMexSecurityGroup
+  # 1. Bucket para el sitio web
   FrontendBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -25,28 +16,67 @@ Resources:
         IndexDocument: index.html
         ErrorDocument: index.html
 
-  # Bucket para Respaldos de Base de Datos
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::${FrontendBucket}/*'
+
+  # 2. Bucket para respaldos
   BackupsBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: nearmexbackups
       VersioningConfiguration:
-        Status: Enabled 
+        Status: Enabled
 
+  # 3. Grupo de Seguridad (Sin especificar VPC para que use la por defecto)
   NearMexSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Habilitar trafico para SSH, API y Web
+      GroupDescription: Reglas para NearMex (22, 80, 3000, 5000)
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 5000
-          ToPort: 5000
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 5000
+          ToPort: 5000
+          CidrIp: 0.0.0.0/0
+
+  # 4. Instancia EC2 (Simplificada para evitar conflictos de VPC)
+  NearMexInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: 'ami-0ea87431b78a82070'
+      InstanceType: 't3.micro'
+      KeyName: 'vockey'
+      SecurityGroups:
+        - !Ref NearMexSecurityGroup
+      
+      BlockDeviceMappings:
+        - DeviceName: "/dev/xvda"
+          Ebs:
+            VolumeSize: 8
+            VolumeType: "gp2"
+            DeleteOnTermination: true
+      
+      Tags:
+        - Key: Name
+          Value: NearMex-Server

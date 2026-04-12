@@ -1,28 +1,45 @@
 import boto3
 import os
-from datetime import datetime
+import datetime
+from botocore.exceptions import NoCredentialsError
 
-# Nombre fijo solicitado
-BUCKET_NAME = 'nearmexbackups'
-FILE_NAME = f"nearmex_backup_{datetime.now().strftime('%Y%m%d_%H%M')}.sql"
+# --- CONFIGURACIÓN BASADA EN TUS VARIABLES INTERNAS ---
+DB_USER = "nearmex_user"
+DB_PASS = "nearmex"
+DB_NAME = "nearmex_db"
+BUCKET_NAME = "nearmexbackups" # Coincide con tu YAML
 
-def ejecutar_respaldo():
-    print(f"Generando copia de seguridad: {FILE_NAME}")
-    # Extrae el dump directamente desde el contenedor de Docker
-    comando_dump = f"docker exec nearmex-db mysqldump -u nearmex_user -pnearmex nearmex_db > {FILE_NAME}"
-    
-    resultado = os.system(comando_dump)
-    
-    if resultado == 0:
-        s3 = boto3.client('s3')
-        try:
-            s3.upload_file(FILE_NAME, BUCKET_NAME, FILE_NAME)
-            print(f"Respaldo subido a s3://{BUCKET_NAME}")
-            os.remove(FILE_NAME)
-        except Exception as e:
-            print(f"Error al subir a S3: {e}")
-    else:
-        print("Error al ejecutar mysqldump en el contenedor.")
+# Nombre del archivo generado (ej. backup_nearmex_db_20260412.sql)
+TIMESTAMP = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+BACKUP_FILE = f"backup_{DB_NAME}_{TIMESTAMP}.sql"
+
+def create_db_backup():
+    """Ejecuta el comando mysqldump usando tus credenciales"""
+    try:
+        print(f"Iniciando respaldo de {DB_NAME}...")
+        # Incluimos la contraseña directamente para la automatización
+        cmd = f"mysqldump -u {DB_USER} -p'{DB_PASS}' {DB_NAME} > {BACKUP_FILE}"
+        os.system(cmd)
+        return BACKUP_FILE
+    except Exception as e:
+        print(f"Error al crear el respaldo: {e}")
+        return None
+
+def upload_to_s3(file_name):
+    """Sube el respaldo al bucket usando Boto3"""
+    s3 = boto3.client('s3')
+    try:
+        print(f"Subiendo {file_name} al bucket {BUCKET_NAME}...")
+        s3.upload_file(file_name, BUCKET_NAME, file_name)
+        print("¡Respaldo completado y subido con éxito!")
+        # Limpieza local
+        os.remove(file_name)
+    except NoCredentialsError:
+        print("Error: No se encontraron credenciales de AWS.")
+    except Exception as e:
+        print(f"Error durante la subida: {e}")
 
 if __name__ == "__main__":
-    ejecutar_respaldo()
+    archivo = create_db_backup()
+    if archivo and os.path.exists(archivo):
+        upload_to_s3(archivo)

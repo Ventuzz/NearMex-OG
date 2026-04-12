@@ -1,30 +1,40 @@
 version: '3.8'
 
 services:
+  # 1. Base de Datos (MariaDB)
+  # Usamos MariaDB para total compatibilidad con Amazon Linux 2023
   nearmex-db:
     image: mariadb:10.5
-    container_name: nearmex-db
+    container_name: nearmex_db_container
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: nearmex
-      MYSQL_DATABASE: nearmex_db
-      MYSQL_USER: nearmex_user
-      MYSQL_PASSWORD: nearmex
+      # Variables alineadas con tu configuración interna
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASS}
+      MARIADB_ROOT_PASSWORD: ${DB_PASS}
     ports:
       - "3306:3306"
     volumes:
-      - ./mysql_data:/var/lib/mysql
+      - nearmex_db_data:/var/lib/mysql
 
-  nearmex-api:
-    build: ./NearMexBackend
-    container_name: nearmex-api
+  # 2. Backend (Node.js)
+  # Este servicio construye la imagen desde tu código fuente
+  nearmex-backend:
+    build: .
+    container_name: nearmex_backend_container
     restart: always
     ports:
+      - "3000:3000"
       - "5000:5000"
+    environment:
+      # El host es el nombre del servicio de arriba
+      DB_HOST: nearmex-db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
     depends_on:
       - nearmex-db
-    environment:
-      DB_HOST: nearmex-db
-      DB_USER: nearmex_user
-      DB_PASSWORD: nearmex
-      DB_NAME: nearmex_db
+
+volumes:
+  nearmex_db_data:
