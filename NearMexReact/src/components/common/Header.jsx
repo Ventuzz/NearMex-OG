@@ -302,6 +302,11 @@ const Header = () => {
                                                                 <i className="fa fa-star"></i> Mis Reseñas
                                                             </Link>
                                                         </li>
+                                                        <li>
+                                                            <Link to="/profile?tab=qa" onClick={closeMenus}>
+                                                                <i className="fa fa-question-circle"></i> Preguntas/Respuestas
+                                                            </Link>
+                                                        </li>
                                                         <li style={{ borderTop: '1px solid #333', marginTop: '5px', paddingTop: '5px' }}>
                                                             <a href="#!" onClick={() => { handleLogout(); closeMenus(); }}>
                                                                 <i className="fa fa-sign-out"></i> Cerrar Sesión

@@ -6,6 +6,77 @@ import Swal from 'sweetalert2';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+const AdminQuestionItem = ({ question, onDeleteQuestion }) => {
+    const [answers, setAnswers] = useState([]);
+    const [showAnswers, setShowAnswers] = useState(false);
+
+    useEffect(() => {
+        if (showAnswers) {
+            fetchAnswers();
+        }
+    }, [showAnswers]);
+
+    const fetchAnswers = async () => {
+        try {
+            const response = await api.get(`/answers/${question.id}`);
+            setAnswers(response.data);
+        } catch (error) {
+            console.error("Error fetching answers:", error);
+        }
+    };
+    
+    const handleDeleteAnswer = async (answerId) => {
+        Swal.fire({
+            title: '¿Eliminar respuesta?', text: "Esta acción no se puede deshacer.", icon: 'warning', iconColor: '#660000', showCancelButton: true, confirmButtonColor: '#660000', cancelButtonColor: '#6c757d', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await api.delete(`/answers/admin/${answerId}`);
+                    setAnswers(answers.filter(a => a.id !== answerId));
+                    Swal.fire({ title: 'Eliminada', text: 'La respuesta ha sido eliminada y se ha notificado al usuario.', icon: 'success', iconColor: '#660000', confirmButtonColor: '#660000' });
+                } catch (e) {
+                    Swal.fire({ title: 'Error', text: 'No se pudo eliminar la respuesta', icon: 'error', iconColor: '#660000', confirmButtonColor: '#660000' });
+                }
+            }
+        });
+    };
+
+    return (
+        <div className="list-group-item flex-column align-items-start">
+            <div className="d-flex w-100 justify-content-between mb-1">
+                <h6 className="mb-0"><strong>{question.username}</strong></h6>
+                <small className="text-muted">{new Date(question.created_at).toLocaleDateString()}</small>
+            </div>
+            <p className="mb-1"><strong>Q:</strong> {question.content}</p>
+            <div className="d-flex justify-content-between mt-2">
+                <button className="btn btn-sm btn-outline-secondary" onClick={() => setShowAnswers(!showAnswers)}>
+                    {showAnswers ? 'Ocultar Respuestas' : 'Ver Respuestas'}
+                </button>
+                <button className="btn btn-sm" style={{ backgroundColor: '#660000', borderColor: '#660000', color: '#fff' }} onClick={() => onDeleteQuestion(question.id)} title="Eliminar pregunta">
+                    <i className="fa fa-trash"></i> Eliminar Pregunta
+                </button>
+            </div>
+
+            {showAnswers && (
+                <div className="mt-3 ps-3 border-start">
+                    {answers.length > 0 ? answers.map(ans => (
+                        <div key={ans.id} className="mb-2 p-2 bg-light rounded d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{ans.username}:</strong> {ans.content}
+                            </div>
+                            <button className="btn btn-sm text-danger p-0 ms-2" onClick={() => handleDeleteAnswer(ans.id)} title="Eliminar respuesta">
+                                <i className="fa fa-times"></i>
+                            </button>
+                        </div>
+                    )) : (
+                        <small className="text-muted">No hay respuestas.</small>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
 const AdminDashboard = () => {
     const { user } = useContext(AuthContext);
     const location = useLocation();
@@ -35,6 +106,10 @@ const AdminDashboard = () => {
     const [selectedDestination, setSelectedDestination] = useState('');
     const [reviews, setReviews] = useState([]);
     const [loadingReviews, setLoadingReviews] = useState(false);
+
+    // Estado Q&A
+    const [questions, setQuestions] = useState([]);
+    const [loadingQuestions, setLoadingQuestions] = useState(false);
 
     useEffect(() => {
         fetchDestinations();
@@ -84,9 +159,25 @@ const AdminDashboard = () => {
         }
     };
 
+    const fetchQuestionsByDestination = async (destId) => {
+        if (!destId) return;
+        setLoadingQuestions(true);
+        try {
+            const response = await api.get(`/questions/${destId}`);
+            setQuestions(response.data);
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudieron cargar las preguntas', 'error');
+        } finally {
+            setLoadingQuestions(false);
+        }
+    };
+
     useEffect(() => {
         if (activeTab === 'reviews' && selectedDestination) {
             fetchReviewsByDestination(selectedDestination);
+        } else if (activeTab === 'qa' && selectedDestination) {
+            fetchQuestionsByDestination(selectedDestination);
         }
     }, [activeTab, selectedDestination]);
 
@@ -289,8 +380,33 @@ const AdminDashboard = () => {
         });
     };
 
+    const handleDeleteQuestion = (questionId) => {
+        Swal.fire({
+            title: '¿Eliminar pregunta?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            iconColor: '#660000',
+            showCancelButton: true,
+            confirmButtonColor: '#660000',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await api.delete(`/questions/admin/${questionId}`);
+                    setQuestions(questions.filter(q => q.id !== questionId));
+                    Swal.fire({ title: 'Eliminada', text: 'La pregunta ha sido eliminada y se ha notificado al usuario.', icon: 'success', iconColor: '#660000', confirmButtonColor: '#660000' });
+                } catch (e) {
+                    console.error(e);
+                    Swal.fire({ title: 'Error', text: 'No se pudo eliminar la pregunta', icon: 'error', iconColor: '#660000', confirmButtonColor: '#660000' });
+                }
+            }
+        });
+    };
 
-    const tabIndices = { 'destinations': 0, 'reviews': 1 };
+
+    const tabIndices = { 'destinations': 0, 'reviews': 1, 'qa': 2 };
     const direction = tabIndices[activeTab] - tabIndices[previousTab];
 
     const slideVariants = {
@@ -339,6 +455,13 @@ const AdminDashboard = () => {
                                 style={activeTab === 'reviews' ? { backgroundColor: '#660000', borderColor: '#660000' } : {}}
                             >
                                 <i className="fa fa-comments me-2"></i> Moderar Reseñas
+                            </button>
+                            <button
+                                className={`list-group-item list-group-item-action ${activeTab === 'qa' ? 'active' : ''}`}
+                                onClick={() => handleTabChange('qa')}
+                                style={activeTab === 'qa' ? { backgroundColor: '#660000', borderColor: '#660000' } : {}}
+                            >
+                                <i className="fa fa-question-circle me-2"></i> Moderar Q&A
                             </button>
                         </div>
                     </div>
@@ -523,6 +646,51 @@ const AdminDashboard = () => {
                                                             <i className="fa fa-trash"></i>
                                                         </button>
                                                     </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+                            
+                            {activeTab === 'qa' && (
+                                <motion.div
+                                    key="qa"
+                                    custom={direction}
+                                    variants={slideVariants}
+                                    initial="enter"
+                                    animate="center"
+                                    exit="exit"
+                                    transition={{ y: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                                    className="card shadow-sm w-100"
+                                >
+                                    <div className="card-body">
+                                        <h4>Moderar Q&A</h4>
+                                        <p className="text-muted mb-4">Selecciona un destino para ver y moderar sus preguntas y respuestas.</p>
+
+                                        <div className="mb-4">
+                                            <select
+                                                className="form-select"
+                                                value={selectedDestination}
+                                                onChange={(e) => setSelectedDestination(e.target.value)}
+                                            >
+                                                <option value="" disabled>Seleccione un destino...</option>
+                                                {destinations.map(d => (
+                                                    <option key={d.id} value={d.id}>{d.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {!selectedDestination ? (
+                                            <p className="text-center mt-4">Selecciona un destino para comenzar.</p>
+                                        ) : loadingQuestions ? (
+                                            <p className="text-center mt-4">Cargando preguntas...</p>
+                                        ) : questions.length === 0 ? (
+                                            <p className="text-center mt-4">No hay preguntas para este destino aún.</p>
+                                        ) : (
+                                            <div className="list-group">
+                                                {questions.map(q => (
+                                                    <AdminQuestionItem key={q.id} question={q} onDeleteQuestion={handleDeleteQuestion} />
                                                 ))}
                                             </div>
                                         )}

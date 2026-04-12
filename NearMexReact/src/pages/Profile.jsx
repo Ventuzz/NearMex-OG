@@ -19,11 +19,15 @@ const Profile = () => {
     const [previousTab, setPreviousTab] = useState(initialTab);
 
     // Mapeo de pestañas a índices para saber si subimos o bajamos
-    const tabIndices = { info: 0, favorites: 1, reviews: 2 };
+    const tabIndices = { info: 0, favorites: 1, reviews: 2, qa: 3 };
 
     const [favorites, setFavorites] = useState([]);
     const [reviews, setReviews] = useState([]);
     const [loadingReviews, setLoadingReviews] = useState(false);
+
+    const [questions, setQuestions] = useState([]);
+    const [answers, setAnswers] = useState([]);
+    const [loadingQA, setLoadingQA] = useState(false);
 
     const [profileData, setProfileData] = useState(null);
     const [isEditingBio, setIsEditingBio] = useState(false);
@@ -34,7 +38,7 @@ const Profile = () => {
     // Efecto para sincronizar la pestaña actual si cambia la URL
     useEffect(() => {
         const tab = queryParams.get('tab');
-        if (tab && ['info', 'favorites', 'reviews'].includes(tab) && tab !== activeTab) {
+        if (tab && ['info', 'favorites', 'reviews', 'qa'].includes(tab) && tab !== activeTab) {
             setPreviousTab(activeTab);
             setActiveTab(tab);
         }
@@ -172,6 +176,34 @@ const Profile = () => {
         }
     };
 
+    useEffect(() => {
+        if (activeTab === 'qa' && user) {
+            fetchUserQA();
+        }
+    }, [activeTab, user]);
+
+    const fetchUserQA = async () => {
+        setLoadingQA(true);
+        try {
+            const [qRes, aRes] = await Promise.all([
+                api.get('/questions/user'),
+                api.get('/answers/user')
+            ]);
+            setQuestions(qRes.data);
+            setAnswers(aRes.data);
+        } catch (error) {
+            console.error('Error fetching user QA:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Hubo un error al cargar tus preguntas y respuestas.',
+                icon: 'error',
+                confirmButtonColor: '#660000',
+            });
+        } finally {
+            setLoadingQA(false);
+        }
+    };
+
     const removeFavorite = (id) => {
         Swal.fire({
             title: '¿Quitar de Favoritos?',
@@ -233,6 +265,38 @@ const Profile = () => {
                         icon: 'error',
                         confirmButtonColor: '#660000'
                     });
+                }
+            }
+        });
+    };
+
+    const deleteUserQuestion = async (questionId) => {
+        Swal.fire({
+            title: '¿Eliminar pregunta?', text: 'Se eliminarán también las respuestas asociadas. Esta acción no se puede deshacer.', icon: 'warning', iconColor: '#660000', showCancelButton: true, confirmButtonColor: '#660000', cancelButtonColor: '#6c757d', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await api.delete(`/questions/${questionId}`);
+                    setQuestions(questions.filter(q => q.id !== questionId));
+                    Swal.fire({ title: '¡Eliminado!', text: 'Tu pregunta ha sido eliminada.', icon: 'success', iconColor: '#660000', confirmButtonColor: '#660000' });
+                } catch (err) {
+                    Swal.fire({ title: 'Error', text: 'Hubo un problema al eliminar la pregunta.', icon: 'error', confirmButtonColor: '#660000' });
+                }
+            }
+        });
+    };
+
+    const deleteUserAnswer = async (answerId) => {
+        Swal.fire({
+            title: '¿Eliminar respuesta?', text: 'Esta acción no se puede deshacer.', icon: 'warning', iconColor: '#660000', showCancelButton: true, confirmButtonColor: '#660000', cancelButtonColor: '#6c757d', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await api.delete(`/answers/${answerId}`);
+                    setAnswers(answers.filter(a => a.id !== answerId));
+                    Swal.fire({ title: '¡Eliminado!', text: 'Tu respuesta ha sido eliminada.', icon: 'success', iconColor: '#660000', confirmButtonColor: '#660000' });
+                } catch (err) {
+                    Swal.fire({ title: 'Error', text: 'Hubo un problema al eliminar la respuesta.', icon: 'error', confirmButtonColor: '#660000' });
                 }
             }
         });
@@ -303,6 +367,13 @@ const Profile = () => {
                                 style={activeTab === 'reviews' ? { backgroundColor: '#660000', borderColor: '#660000' } : {}}
                             >
                                 <i className="fa fa-star me-2"></i> Mis Reseñas
+                            </button>
+                            <button
+                                onClick={() => handleTabChange('qa')}
+                                className={`list-group-item list-group-item-action ${activeTab === 'qa' ? 'active' : ''}`}
+                                style={activeTab === 'qa' ? { backgroundColor: '#660000', borderColor: '#660000' } : {}}
+                            >
+                                <i className="fa fa-question-circle me-2"></i> Preguntas y Respuestas
                             </button>
                         </div>
                     </div>
@@ -497,6 +568,71 @@ const Profile = () => {
                                                             </button>
                                                         </div>
                                                     ))}
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    )}
+
+                                    {/* Pestaña: Q&A */}
+                                    {activeTab === 'qa' && (
+                                        <motion.div
+                                            key="qa"
+                                            custom={direction}
+                                            variants={slideVariants}
+                                            initial="enter"
+                                            animate="center"
+                                            exit="exit"
+                                            transition={{ y: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                                        >
+                                            <h4 className="border-bottom pb-2 mb-4">Mis Preguntas y Respuestas</h4>
+                                            {loadingQA ? (
+                                                <p className="text-center py-4">Cargando...</p>
+                                            ) : (
+                                                <div>
+                                                    <h5 className="mb-3 text-secondary">Mis Preguntas ({questions.length})</h5>
+                                                    {questions.length === 0 ? (
+                                                        <p className="text-muted small mb-4">No has realizado ninguna pregunta.</p>
+                                                    ) : (
+                                                        <div className="list-group mb-4">
+                                                            {questions.map(q => (
+                                                                <div key={q.id} className="list-group-item list-group-item-action flex-column align-items-start mb-2 rounded border border-start border-4" style={{borderLeftColor: '#660000'}}>
+                                                                    <div className="d-flex w-100 justify-content-between">
+                                                                        <h6 className="mb-1" style={{ color: '#660000', cursor: 'pointer' }} onClick={() => navigate(`/destination/${q.destination_id}`)}>
+                                                                            Destino: {q.destination_name}
+                                                                        </h6>
+                                                                        <small className="text-muted">{new Date(q.created_at).toLocaleDateString()}</small>
+                                                                    </div>
+                                                                    <p className="mb-2 mt-2"><strong>Q:</strong> {q.content}</p>
+                                                                    <button className="btn btn-sm text-white mt-1" style={{ backgroundColor: '#660000', alignSelf: 'flex-start' }} onClick={() => deleteUserQuestion(q.id)}>
+                                                                        Eliminar Pregunta
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    <h5 className="mb-3 text-secondary border-top pt-3">Mis Respuestas ({answers.length})</h5>
+                                                    {answers.length === 0 ? (
+                                                        <p className="text-muted small mb-4">No has respondido a ninguna pregunta.</p>
+                                                    ) : (
+                                                        <div className="list-group">
+                                                            {answers.map(a => (
+                                                                <div key={a.id} className="list-group-item list-group-item-action flex-column align-items-start mb-2 rounded border border-start border-4 border-secondary">
+                                                                    <div className="d-flex w-100 justify-content-between align-items-center">
+                                                                        <div onClick={() => navigate(`/destination/${a.destination_id}`)} style={{ cursor: 'pointer' }}>
+                                                                            <small className="d-block text-muted"><strong>Destino:</strong> {a.destination_name}</small>
+                                                                            <small className="d-block text-muted" style={{ fontStyle: 'italic' }}>Pregunta de la comunidad: "{a.question_content}"</small>
+                                                                        </div>
+                                                                        <small className="text-muted">{new Date(a.created_at).toLocaleDateString()}</small>
+                                                                    </div>
+                                                                    <p className="mb-2 mt-2"><strong>A:</strong> {a.content}</p>
+                                                                    <button className="btn btn-sm text-white mt-1" style={{ backgroundColor: '#660000', alignSelf: 'flex-start' }} onClick={() => deleteUserAnswer(a.id)}>
+                                                                        Eliminar Respuesta
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </motion.div>

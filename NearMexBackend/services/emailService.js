@@ -133,3 +133,116 @@ exports.sendWelcomeEmail = async (toEmail, username) => {
         console.error("Error al enviar correo de bienvenida:", error);
     }
 };
+
+/**
+ * Envia un correo electrónico notificando que una pregunta ha recibido una respuesta.
+ */
+exports.sendQuestionAnsweredEmail = async (toEmail, username, destinationName, questionText, answererName) => {
+    try {
+        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return;
+
+        const mailOptions = {
+            from: `"Avisos NearMex" <${process.env.SMTP_USER}>`,
+            to: toEmail,
+            subject: '¡Alguien ha respondido a tu pregunta!',
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <h2 style="color: #660000;">Hola ${username},</h2>
+                    <p><strong>${answererName}</strong> ha respondido a tu pregunta en el destino <strong>${destinationName}</strong>.</p>
+                    <blockquote style="border-left: 4px solid #ccc; margin: 1.5em 10px; padding: 0.5em 10px; background-color: #f9f9f9;">
+                        <em>"${questionText}"</em>
+                    </blockquote>
+                    <p>Entra a la aplicación para ver la respuesta.</p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #999;">Este es un mensaje automático, por favor no respondas a este correo.</p>
+                </div>
+            `,
+        };
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`Correo de notificación de respuesta enviado a ${toEmail}. Message ID: ${info.messageId}`);
+    } catch (error) {
+        console.error("Error al enviar correo de notificación:", error);
+    }
+};
+
+/**
+ * Envia un correo electrónico notificando a un usuario que su pregunta ha sido eliminada por un administrador.
+ */
+exports.sendQuestionDeletionEmail = async (toEmail, username, destinationName) => {
+    try {
+        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return;
+        const mailOptions = {
+            from: `"Avisos NearMex" <${process.env.SMTP_USER}>`,
+            to: toEmail,
+            subject: 'Notificación: Tu pregunta ha sido eliminada',
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <h2 style="color: #660000;">Hola ${username},</h2>
+                    <p>Te informamos que un administrador de <strong>NearMex</strong> ha retirado tu pregunta en el destino <strong>${destinationName}</strong>.</p>
+                    <p>Esto sucede si el contenido incumple nuestros lineamientos o por razones de moderación interna.</p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #999;">Este es un mensaje automático, por favor no respondas a este correo.</p>
+                </div>
+            `,
+        };
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`Correo enviado exitosamente a ${toEmail}. Message ID: ${info.messageId}`);
+    } catch (error) {
+        console.error("Error al enviar correo de notificación:", error);
+    }
+};
+
+/**
+ * Envia un correo electrónico notificando a un usuario que su respuesta ha sido eliminada por un administrador.
+ */
+exports.sendAnswerDeletionEmail = async (toEmail, username, destinationName) => {
+    try {
+        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return;
+        const mailOptions = {
+            from: `"Avisos NearMex" <${process.env.SMTP_USER}>`,
+            to: toEmail,
+            subject: 'Notificación: Tu respuesta ha sido eliminada',
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <h2 style="color: #660000;">Hola ${username},</h2>
+                    <p>Te informamos que un administrador de <strong>NearMex</strong> ha retirado tu respuesta en el destino <strong>${destinationName}</strong>.</p>
+                    <p>Esto sucede si el contenido incumple nuestros lineamientos o por razones de moderación interna.</p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #999;">Este es un mensaje automático, por favor no respondas a este correo.</p>
+                </div>
+            `,
+        };
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`Correo enviado exitosamente a ${toEmail}. Message ID: ${info.messageId}`);
+    } catch (error) {
+        console.error("Error al enviar correo de notificación:", error);
+    }
+};
+
+/**
+ * Envia un correo electrónico notificando a un usuario que su respuesta fue eliminada porque la pregunta padre fue eliminada por un administrador.
+ */
+exports.sendQuestionDeletedToAnswerersEmail = async (toEmail, username, destinationName) => {
+    try {
+        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return;
+        const mailOptions = {
+            from: `"Avisos NearMex" <${process.env.SMTP_USER}>`,
+            to: toEmail,
+            subject: 'Actualización sobre tu respuesta en NearMex',
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <h2 style="color: #660000;">Hola ${username},</h2>
+                    <p>Te informamos que una pregunta en el destino <strong>${destinationName}</strong>, a la cual habías respondido, ha sido eliminada por nuestro personal de moderación por no cumplir con las normas de la comunidad.</p>
+                    <p>Como resultado de esta acción de moderación, tu respuesta ha sido removida automáticamente.</p>
+                    <p>Queremos reiterarte nuestro agradecimiento por tomarte el tiempo de apoyar a la comunidad compartiendo tus conocimientos. ¡Tu ayuda es fundamental en NearMex!</p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #999;">Este es un mensaje automático, por favor no respondas a este correo.</p>
+                </div>
+            `,
+        };
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`Correo enviado exitosamente a ${toEmail}. Message ID: ${info.messageId}`);
+    } catch (error) {
+        console.error("Error al enviar correo de notificación:", error);
+    }
+};

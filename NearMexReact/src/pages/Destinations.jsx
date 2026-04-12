@@ -19,6 +19,155 @@ const getWeatherIconAndDescription = (code) => {
 };
 
 /**
+ * Componente para mostrar una pregunta y sus respuestas
+ */
+const QuestionItem = ({ question, user, onDelete }) => {
+    const [answers, setAnswers] = useState([]);
+    const [showAnswers, setShowAnswers] = useState(false);
+    const [newAnswer, setNewAnswer] = useState('');
+
+    useEffect(() => {
+        if (showAnswers) {
+            fetchAnswers();
+        }
+    }, [showAnswers]);
+
+    const fetchAnswers = async () => {
+        try {
+            const response = await api.get(`/answers/${question.id}`);
+            setAnswers(response.data);
+        } catch (error) {
+            console.error("Error fetching answers:", error);
+        }
+    };
+
+    const handleAnswerSubmit = async (e) => {
+        e.preventDefault();
+        Swal.fire({
+            title: '¿Enviar respuesta?',
+            text: 'Tu respuesta ayudará a otros miembros de la comunidad.',
+            icon: 'question',
+            iconColor: '#660000',
+            showCancelButton: true,
+            confirmButtonColor: '#660000',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, enviar',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await api.post('/answers', {
+                        questionId: question.id,
+                        content: newAnswer
+                    });
+                    setNewAnswer('');
+                    fetchAnswers();
+                    Swal.fire({ title: 'Respuesta enviada', icon: 'success', iconColor: '#660000', timer: 1500, showConfirmButton: false });
+                } catch (error) {
+                    Swal.fire('Error', 'Hubo un problema al enviar la respuesta.', 'error');
+                }
+            }
+        });
+    };
+
+    const handleDeleteAnswer = async (answerId) => {
+         Swal.fire({
+            title: '¿Eliminar respuesta?',
+            icon: 'warning',
+            iconColor: '#660000',
+            showCancelButton: true,
+            confirmButtonColor: '#660000',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await api.delete(`/answers/${answerId}`);
+                    fetchAnswers();
+                    Swal.fire({ title: 'Eliminada', text: '', icon: 'success', iconColor: '#660000', confirmButtonColor: '#660000' });
+                } catch (error) {
+                    Swal.fire('Error', 'No se pudo eliminar.', 'error');
+                }
+            }
+        });
+    };
+
+    return (
+        <div className="mb-4 p-3 shadow-sm rounded bg-light" style={{ borderLeft: '4px solid #660000' }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+                <div className="d-flex align-items-center">
+                    {(user && user.userId === question.user_id && user.avatar) || question.avatar ? (
+                        <img src={(user && user.userId === question.user_id && user.avatar) ? user.avatar : question.avatar} alt={question.username} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', marginRight: '10px' }} />
+                    ) : (
+                        <i className="fa fa-user-circle" style={{ fontSize: '40px', color: '#ccc', marginRight: '10px' }}></i>
+                    )}
+                    <div>
+                        <strong style={{ fontSize: '1.1em', display: 'block', marginBottom: '-5px' }}>{question.username}</strong>
+                        <small className="text-muted">{new Date(question.created_at).toLocaleDateString()}</small>
+                    </div>
+                </div>
+                {user && user.userId === question.user_id && (
+                    <button className="btn btn-link p-0" onClick={() => onDelete(question.id)} style={{ color: '#660000' }}>
+                        <i className="fa fa-trash"></i>
+                    </button>
+                )}
+            </div>
+            <p className="mt-2 mb-2" style={{ fontSize: '1.1em' }}><strong>Q:</strong> {question.content}</p>
+            
+            <button className="btn btn-sm btn-outline-secondary mt-2" onClick={() => setShowAnswers(!showAnswers)}>
+                {showAnswers ? 'Ocultar Respuestas' : `Ver Respuestas (${answers.length > 0 ? answers.length : 'Responder'})`}
+            </button>
+
+            {showAnswers && (
+                <div className="mt-3 ps-4" style={{ borderLeft: '2px solid #ddd' }}>
+                    {answers.length > 0 ? answers.map(ans => (
+                        <div key={ans.id} className="mb-3 p-2 bg-white rounded shadow-sm">
+                            <div className="d-flex justify-content-between">
+                                <div className="d-flex align-items-center mb-1">
+                                    <strong style={{ fontSize: '0.9em', color: '#660000' }}>{ans.username}</strong>
+                                    <small className="text-muted ms-2" style={{ fontSize: '0.7em' }}>{new Date(ans.created_at).toLocaleDateString()}</small>
+                                </div>
+                                {user && user.userId === ans.user_id && (
+                                     <button className="btn btn-link p-0" onClick={() => handleDeleteAnswer(ans.id)} style={{ color: '#660000' }}>
+                                         <i className="fa fa-trash" style={{ fontSize: '0.9em' }}></i>
+                                     </button>
+                                )}
+                            </div>
+                            <p className="mb-0" style={{ fontSize: '0.95em' }}>{ans.content}</p>
+                        </div>
+                    )) : (
+                        <p className="text-muted small">Aún no hay respuestas. ¡Sé el primero en responder!</p>
+                    )}
+                    
+                    {user ? (
+                        user.userId !== question.user_id ? (
+                            <form onSubmit={handleAnswerSubmit} className="mt-3">
+                                <div className="input-group">
+                                    <input 
+                                        type="text" 
+                                        className="form-control form-control-sm" 
+                                        placeholder="Escribe una respuesta..." 
+                                        value={newAnswer} 
+                                        onChange={(e) => setNewAnswer(e.target.value)} 
+                                        required 
+                                    />
+                                    <button type="submit" className="btn btn-sm btn-primary" style={{ backgroundColor: '#660000', borderColor: '#660000' }}>Enviar</button>
+                                </div>
+                            </form>
+                        ) : (
+                            <div className="mt-3 small text-muted fst-italic">No puedes responder a tu propia pregunta.</div>
+                        )
+                    ) : (
+                        <div className="mt-2 small text-muted">Inicia sesión para responder.</div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+/**
  * Página de Detalle del Destino.
  * Muestra información completa de un destino, incluyendo mapa (placeholder) y sistema de reseñas
  */
@@ -33,6 +182,8 @@ const Destinations = () => {
     const [reviews, setReviews] = useState([]);
     const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
     const [editingReview, setEditingReview] = useState(null);
+    const [questions, setQuestions] = useState([]);
+    const [newQuestion, setNewQuestion] = useState('');
     const [activeTab, setActiveTab] = useState('map');
     const [weather, setWeather] = useState(null);
 
@@ -104,7 +255,59 @@ const Destinations = () => {
 
         fetchDestinationData();
         fetchReviews();
+        fetchQuestions();
     }, [id]);
+
+    const fetchQuestions = async () => {
+        try {
+            const response = await api.get(`/questions/${id}`);
+            setQuestions(response.data);
+        } catch (error) {
+            console.error('Error fetching questions:', error);
+        }
+    };
+
+    const handleSubmitQuestion = async (e) => {
+        e.preventDefault();
+        Swal.fire({
+            title: '¿Enviar pregunta?',
+            text: 'Tu pregunta será pública y podrá ser respondida por la comunidad.',
+            icon: 'question',
+            iconColor: '#660000',
+            showCancelButton: true,
+            confirmButtonColor: '#660000',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, enviar',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await api.post('/questions', { destinationId: id, content: newQuestion });
+                    setNewQuestion('');
+                    fetchQuestions();
+                    Swal.fire({ title: '¡Pregunta enviada!', icon: 'success', iconColor: '#660000', timer: 1500, showConfirmButton: false });
+                } catch (error) {
+                    Swal.fire('Error', 'Hubo un problema al enviar la pregunta.', 'error');
+                }
+            }
+        });
+    };
+
+    const handleDeleteQuestion = async (questionId) => {
+        Swal.fire({
+            title: '¿Eliminar pregunta?', text: 'Esta acción no se puede deshacer.', icon: 'warning', iconColor: '#660000', showCancelButton: true, confirmButtonColor: '#660000', cancelButtonColor: '#6c757d', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await api.delete(`/questions/${questionId}`);
+                    fetchQuestions();
+                    Swal.fire({ title: 'Eliminada', text: 'Tu pregunta ha sido eliminada.', icon: 'success', iconColor: '#660000', confirmButtonColor: '#660000' });
+                } catch (error) {
+                    Swal.fire('Error', 'Hubo un problema al eliminar.', 'error');
+                }
+            }
+        });
+    };
 
     // Función para obtener reseñas desde el servidor
     const fetchReviews = async () => {
@@ -411,6 +614,9 @@ const Destinations = () => {
                                             <li className="nav-item" role="presentation">
                                                 <button className={`nav-link ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')} type="button" role="tab">Reseñas ({reviews.length})</button>
                                             </li>
+                                            <li className="nav-item" role="presentation">
+                                                <button className={`nav-link ${activeTab === 'questions' ? 'active' : ''}`} onClick={() => setActiveTab('questions')} type="button" role="tab">Preguntas ({questions.length})</button>
+                                            </li>
                                         </ul>
                                     </div>
                                     <div className="tab-content" id="myTabContent" style={{ overflow: 'hidden', position: 'relative', minHeight: '400px' }}>
@@ -575,6 +781,49 @@ const Destinations = () => {
                                                     {!user && (
                                                         <div className="alert" style={{ backgroundColor: 'rgba(102, 0, 0, 0.1)', color: '#660000', borderColor: '#660000' }}>
                                                             Para escribir una reseña necesitas <Link to="/login" style={{ color: '#660000', fontWeight: 'bold' }}>Iniciar Sesión</Link>
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            )}
+                                            {activeTab === 'questions' && (
+                                                <motion.div
+                                                    key="questions"
+                                                    initial={{ opacity: 0, x: 30 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: -30 }}
+                                                    transition={{ duration: 0.3 }}
+                                                    className="tab-pane show active"
+                                                    style={{ display: 'block' }}
+                                                >
+                                                    {user && (
+                                                        <div className="mb-4">
+                                                            <h5>¿Tienes alguna duda sobre este destino?</h5>
+                                                            <form onSubmit={handleSubmitQuestion}>
+                                                                <div className="mb-3">
+                                                                    <textarea
+                                                                        className="form-control"
+                                                                        placeholder="Escribe tu pregunta aquí..."
+                                                                        value={newQuestion}
+                                                                        onChange={(e) => setNewQuestion(e.target.value)}
+                                                                        required
+                                                                    ></textarea>
+                                                                </div>
+                                                                <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#660000', borderColor: '#660000' }}>Enviar Pregunta</button>
+                                                            </form>
+                                                            <hr />
+                                                        </div>
+                                                    )}
+
+                                                    {questions.length > 0 ? (
+                                                        questions.map((q) => (
+                                                            <QuestionItem key={q.id} question={q} user={user} onDelete={handleDeleteQuestion} />
+                                                        ))
+                                                    ) : (
+                                                        <p>Aún no hay preguntas para este destino. ¡Usa este espacio para aclarar tus dudas!</p>
+                                                    )}
+                                                    {!user && (
+                                                        <div className="alert" style={{ backgroundColor: 'rgba(102, 0, 0, 0.1)', color: '#660000', borderColor: '#660000' }}>
+                                                            Para hacer una pregunta necesitas <Link to="/login" style={{ color: '#660000', fontWeight: 'bold' }}>Iniciar Sesión</Link>
                                                         </div>
                                                     )}
                                                 </motion.div>

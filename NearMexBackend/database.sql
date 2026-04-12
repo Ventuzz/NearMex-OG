@@ -3,6 +3,8 @@ CREATE DATABASE IF NOT EXISTS nearmex_db;
 USE nearmex_db;
 
 -- Drop tables in correct order if they exist
+DROP TABLE IF EXISTS answers;
+DROP TABLE IF EXISTS questions;
 DROP TABLE IF EXISTS favorites;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS destinations;
@@ -63,6 +65,32 @@ CREATE TABLE IF NOT EXISTS favorites (
     UNIQUE KEY unique_favorite (user_id, destination_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (destination_id) REFERENCES destinations(id) ON DELETE CASCADE
+);
+
+-- Questions table
+CREATE TABLE IF NOT EXISTS questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    destination_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_visible BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (destination_id) REFERENCES destinations(id) ON DELETE CASCADE
+);
+
+-- Answers table
+CREATE TABLE IF NOT EXISTS answers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question_id INT NOT NULL,
+    user_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_visible BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Insert default admin user
