@@ -1,6 +1,6 @@
 #!/bin/bash
 # =================================================================
-# deploy_nearmex.sh - Versión para CI/CD (GitHub Actions)
+# deploy_nearmex.sh - 
 # =================================================================
 
 echo "--- Iniciando Despliegue Automatizado de NearMex ---"
