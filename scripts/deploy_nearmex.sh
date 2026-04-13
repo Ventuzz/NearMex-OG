@@ -66,8 +66,21 @@ fi
 
 # 4. Despliegue con Docker
 echo "Levantando contenedores con docker-compose..."
-# Ahora docker-compose encontrará el .env en la carpeta actual automáticamente
 docker-compose up -d --build
+
+# Esperar unos segundos a que la base de datos esté lista para recibir conexiones
+echo "Esperando a que MariaDB inicie..."
+sleep 15 
+
+# IMPORTACIÓN AUTOMÁTICA DE LA BASE DE DATOS
+# Asumiendo que tu archivo se llama database.sql y está en la raíz del repo
+if [ -f "database.sql" ]; then
+    echo "Importando estructura y datos de NearMex..."
+    docker exec -i nearmex_db_container mariadb -u nearmex_user -pnearmex nearmex_db < database.sql
+    echo "Base de datos actualizada con éxito."
+else
+    echo "Aviso: No se encontró database.sql para importar datos."
+fi
 
 # 5. Build de React y Sincronización con S3
 if [ -d "NearMexReact" ]; then
