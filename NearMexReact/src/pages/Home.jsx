@@ -66,7 +66,7 @@ const Home = () => {
                             <div className="caption header-text">
                                 {user ? (
                                     <>
-                                        <h6 style={{ fontSize: '24px' }}>Me caga esto</h6>
+                                        <h6 style={{ fontSize: '24px' }}>esto es la prueba final del cambio</h6>
                                         <h2 style={{ position: 'relative', display: 'inline-block', fontSize: '56px', maxWidth: '100%', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                                             ¡Hola, {user.username}!
                                         </h2>
