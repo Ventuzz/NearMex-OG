@@ -14,25 +14,26 @@ jobs:
           host: ${{ secrets.HOST_IP }}
           username: ec2-user
           key: ${{ secrets.SSH_KEY }}
-          # Pasamos los secretos como variables de entorno al shell remoto
-          envs: REPO_URL,GIT_EMAIL,GIT_NAME,IP_PUBLICA,BUCKET_S3
+          # Mapeamos los secretos a variables de entorno para la sesión SSH
+          envs: REPO_URL,GIT_EMAIL,GIT_NAME,HOST_IP,BUCKET_S3
           script: |
+            # Navegar a la carpeta del proyecto
             cd ~/NearMex-OG
             
-            # 1. Actualizar el repositorio
+            # 1. Limpieza y actualización del código
             git fetch --all
             git reset --hard origin/automatización
             
-            # 2. Crear el archivo de configuración para que el script no pregunte nada
-            # Usamos las variables pasadas desde GitHub Secrets
-            cat <<EOF > scripts/.deploy_config
-            REPO_URL="${{ secrets.REPO_URL }}"
-            GIT_EMAIL="${{ secrets.GIT_EMAIL }}"
-            GIT_NAME="${{ secrets.GIT_NAME }}"
-            IP_PUBLICA="${{ secrets.HOST_IP }}"
-            BUCKET_S3="${{ secrets.BUCKET_S3 }}"
-            EOF
+            # 2. CREACIÓN AUTOMÁTICA DEL ARCHIVO DE CONFIGURACIÓN
+            # Esto evita que el script se detenga a pedir datos (read)
+            echo "REPO_URL=\"${{ secrets.REPO_URL }}\"" > scripts/.deploy_config
+            echo "GIT_EMAIL=\"${{ secrets.GIT_EMAIL }}\"" >> scripts/.deploy_config
+            echo "GIT_NAME=\"${{ secrets.GIT_NAME }}\"" >> scripts/.deploy_config
+            echo "IP_PUBLICA=\"${{ secrets.HOST_IP }}\"" >> scripts/.deploy_config
+            echo "BUCKET_S3=\"${{ secrets.BUCKET_S3 }}\"" >> scripts/.deploy_config
             
-            # 3. Dar permisos y ejecutar
+            # 3. Permisos y ejecución
             chmod +x scripts/deploy_nearmex.sh
+            
+            # Ejecutamos con bash -l para asegurar que cargue el PATH de docker/node
             bash -l ./scripts/deploy_nearmex.sh
