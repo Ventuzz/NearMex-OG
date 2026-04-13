@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Infraestructura NearMex compatible con laboratorios AWS
+Description: Infraestructura NearMex
 
 Resources:
   # 1. Bucket para el sitio web
@@ -37,7 +37,7 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
 
-  # 3. Grupo de Seguridad (Sin especificar VPC para que use la por defecto)
+  # 3. Grupo de Seguridad
   NearMexSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -60,7 +60,7 @@ Resources:
           ToPort: 5000
           CidrIp: 0.0.0.0/0
 
-  # 4. Instancia EC2 (Simplificada para evitar conflictos de VPC)
+  # 4. Instancia EC2
   NearMexInstance:
     Type: AWS::EC2::Instance
     Properties:

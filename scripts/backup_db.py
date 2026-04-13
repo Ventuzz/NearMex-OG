@@ -1,45 +1,58 @@
-import boto3
 import os
 import datetime
+import subprocess
+import boto3
 from botocore.exceptions import NoCredentialsError
 
-# --- CONFIGURACIÓN BASADA EN TUS VARIABLES INTERNAS ---
-DB_USER = "nearmex_user"
-DB_PASS = "nearmex"
+# --- CONFIGURACIÓN ESPECÍFICA ---
 DB_NAME = "nearmex_db"
-BUCKET_NAME = "nearmexbackups" # Coincide con tu YAML
+DB_USER = "nearmex_user"
+DB_PASS = "nearmex"  
+CONTAINER_NAME = "nearmex_db_container"
+BACKUP_DIR = "backups_demo"
+BUCKET_NAME = "nearmexbackups" 
 
-# Nombre del archivo generado (ej. backup_nearmex_db_20260412.sql)
-TIMESTAMP = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-BACKUP_FILE = f"backup_{DB_NAME}_{TIMESTAMP}.sql"
+# 1. Crear carpeta local
+if not os.path.exists(BACKUP_DIR):
+    os.makedirs(BACKUP_DIR)
 
-def create_db_backup():
-    """Ejecuta el comando mysqldump usando tus credenciales"""
-    try:
-        print(f"Iniciando respaldo de {DB_NAME}...")
-        # Incluimos la contraseña directamente para la automatización
-        cmd = f"mysqldump -u {DB_USER} -p'{DB_PASS}' {DB_NAME} > {BACKUP_FILE}"
-        os.system(cmd)
-        return BACKUP_FILE
-    except Exception as e:
-        print(f"Error al crear el respaldo: {e}")
-        return None
+# 2. Generar nombres de archivo con marca de tiempo
+fecha_hora = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+filename = f"nearmex_prod_{fecha_hora}.sql"
+local_path = os.path.join(BACKUP_DIR, filename)
 
-def upload_to_s3(file_name):
-    """Sube el respaldo al bucket usando Boto3"""
+def upload_to_s3(local_file, bucket, s3_file):
+    """Sube el archivo SQL a Amazon S3 usando Boto3"""
     s3 = boto3.client('s3')
     try:
-        print(f"Subiendo {file_name} al bucket {BUCKET_NAME}...")
-        s3.upload_file(file_name, BUCKET_NAME, file_name)
-        print("¡Respaldo completado y subido con éxito!")
-        # Limpieza local
-        os.remove(file_name)
+        print(f"[*] Conectando con S3 y subiendo a: {bucket}...")
+        s3.upload_file(local_file, bucket, s3_file)
+        print(f"[V] ¡Éxito! El respaldo ya está seguro en la nube.")
+        return True
     except NoCredentialsError:
-        print("Error: No se encontraron credenciales de AWS.")
+        print("[-] Error: No se encontraron credenciales de AWS.")
+        return False
     except Exception as e:
-        print(f"Error durante la subida: {e}")
+        print(f"[-] Error al subir a S3: {e}")
+        return False
 
-if __name__ == "__main__":
-    archivo = create_db_backup()
-    if archivo and os.path.exists(archivo):
-        upload_to_s3(archivo)
+# 3. Ejecución del Proceso
+print(f"--- INICIANDO BACKUP PARA DEMOSTRACIÓN ---")
+
+# Comando para extraer los datos del contenedor Docker
+command = f"docker exec {CONTAINER_NAME} /usr/bin/mysqldump -u{DB_USER} -p{DB_PASS} {DB_NAME} > {local_path}"
+
+try:
+    # Paso 1: Generar el archivo .sql localmente
+    print(f"[*] Extrayendo datos desde el contenedor '{CONTAINER_NAME}'...")
+    subprocess.run(command, shell=True, check=True)
+    print(f"[V] Archivo local creado: {local_path}")
+    
+    # Paso 2: Subir a S3
+    s3_dest_path = f"manual_backups/{filename}"
+    if upload_to_s3(local_path, BUCKET_NAME, s3_dest_path):
+        print(f"--- PROCESO COMPLETADO ---")
+        print(f"Verifica en AWS S3: {BUCKET_NAME}/{s3_dest_path}")
+
+except Exception as e:
+    print(f"[-] ERROR CRÍTICO: {e}")

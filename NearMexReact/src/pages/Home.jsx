@@ -67,7 +67,7 @@ const Home = () => {
                                 {user ? (
                                     <>
                                         <h6 style={{ fontSize: '24px' }}>Descubre lo mejor de Guadalajara</h6>
-                                        <h2 style={{ position: 'relative', display: 'inline-block', fontSize: '56px' }}>
+                                        <h2 style={{ position: 'relative', display: 'inline-block', fontSize: '56px', maxWidth: '100%', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                                             ¡Hola, {user.username}!
                                         </h2>
                                         <p style={{ fontSize: '22px', marginTop: '10px' }}>Descubre tu próximo destino y vive una experiencia inolvidable. Explora nuestras recomendaciones y encuentra los destinos perfectos para ti.</p>

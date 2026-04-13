@@ -1797,6 +1797,10 @@ body {
     margin-bottom: 45px;
   }
 
+  .tabs-content {
+    padding: 30px 20px;
+  }
+
   .tabs-content .nav-link {
     font-size: 16px;
   }

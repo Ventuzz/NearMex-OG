@@ -612,7 +612,7 @@ const Destinations = () => {
                             <div className="tabs-content">
                                 <div className="row">
                                     <div className="nav-wrapper ">
-                                        <ul className="nav nav-tabs" role="tablist">
+                                        <ul className="nav nav-tabs" role="tablist" style={{ flexWrap: 'nowrap', whiteSpace: 'nowrap', overflowX: 'auto' }}>
                                             <li className="nav-item" role="presentation">
                                                 <button className={`nav-link ${activeTab === 'map' ? 'active' : ''}`} onClick={() => setActiveTab('map')} type="button" role="tab">Mapa</button>
                                             </li>
@@ -634,14 +634,14 @@ const Destinations = () => {
                                                     exit={{ opacity: 0, x: 30 }}
                                                     transition={{ duration: 0.3 }}
                                                     className="tab-pane show active"
-                                                    style={{ display: 'block' }}
+                                                    style={{ display: 'block', width: '100%' }}
                                                 >
-                                                    <div style={{ width: '100%', height: '400px', borderRadius: '15px', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                                                    <div id="map" style={{ width: '100%' }}>
                                                         <iframe
                                                             title={`Mapa de ${destination.name}`}
                                                             width="100%"
-                                                            height="100%"
-                                                            style={{ border: 0 }}
+                                                            height="325px"
+                                                            style={{ border: 0, borderRadius: '23px' }}
                                                             loading="lazy"
                                                             allowFullScreen
                                                             referrerPolicy="no-referrer-when-downgrade"

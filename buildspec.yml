@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+  pre_build:
+    commands:
+      print("Conectando con el repositorio NearMex...")
+  build:
+    commands:
+      print("Iniciando despliegue en EC2...")
+      chmod +x deploy_nearmex.sh
+      ./deploy_nearmex.sh
+artifacts:
+  files:
+    - '**/*'
