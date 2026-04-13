@@ -17,5 +17,5 @@ jobs:
           script: |
             cd ~/NearMex-OG
             git pull origin automatización
-            chmod +x deploy_nearmex.sh
-            ./deploy_nearmex.sh
+            chmod +x scripts/deploy_nearmex.sh
+            ./scripts/deploy_nearmex.sh
