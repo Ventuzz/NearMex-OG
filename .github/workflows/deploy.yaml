@@ -16,6 +16,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/NearMex-OG
-            git pull origin automatización
+            git fetch --all
+            git reset --hard origin/automatización
             chmod +x scripts/deploy_nearmex.sh
             bash -l ./scripts/deploy_nearmex.sh
