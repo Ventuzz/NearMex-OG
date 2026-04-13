@@ -3,6 +3,12 @@
 # deploy_nearmex.sh 
 # =========================
 
+CONFIG_FILE=".nearmex_config"
+
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+fi
+
 validar_campo() {
     local prompt_text=$1
     local var_name=$2
