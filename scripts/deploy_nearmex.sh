@@ -1,17 +1,18 @@
 #!/bin/bash
 # ==================================================
-# deploy_nearmex.sh - Versión Pro (Persistente)
+# deploy_nearmex.sh - Versión Final Corregida
 # ==================================================
 
-# Archivo donde se guardará la configuración para no repetir preguntas
-CONFIG_FILE=".deploy_config"
-
-# --- Funciones de Configuración ---
+# Buscamos el archivo en la misma carpeta donde reside este script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/.deploy_config"
 
 cargar_configuracion() {
     if [ -f "$CONFIG_FILE" ]; then
-        echo "--- Cargando configuración guardada ---"
+        echo "--- Cargando configuración desde $CONFIG_FILE ---"
         source "$CONFIG_FILE"
+    else
+        echo "--- No se encontró archivo de configuración previo ---"
     fi
 }
 
@@ -30,14 +31,20 @@ validar_campo() {
     local prompt_text=$1
     local var_name=$2
     local valor_actual="${!var_name}"
-    local nuevo_valor=""
     
-    # Si la variable ya tiene valor (cargado de config o env), saltar pregunta
+    # Si la variable ya tiene valor, saltar
     if [ -n "$valor_actual" ]; then
-        echo "> $prompt_text [OK: $valor_actual]"
+        echo "> $prompt_text [OK]"
         return
     fi
 
+    # Si NO es una terminal interactiva (como en GitHub Actions) y está vacío, ERROR
+    if [ ! -t 0 ]; then
+        echo "ERROR CRÍTICO: La variable $var_name no está definida en el entorno ni en el config."
+        exit 1
+    fi
+
+    local nuevo_valor=""
     while [ -z "$nuevo_valor" ]; do
         read -p "$prompt_text" nuevo_valor
         if [ -z "$nuevo_valor" ]; then
@@ -49,7 +56,7 @@ validar_campo() {
 
 echo "--- Iniciando Despliegue Automatizado de NearMex ---"
 
-# 0. Preparación de variables
+# 0. Intentar cargar configuración
 cargar_configuracion
 
 validar_campo "URL del repositorio GitHub: " REPO_URL
@@ -58,47 +65,30 @@ validar_campo "Usuario de GitHub: " GIT_NAME
 validar_campo "IP Publica de la EC2: " IP_PUBLICA
 validar_campo "Nombre del Bucket S3: " BUCKET_S3
 
-guardar_configuracion
+# 1. Moverse a la raíz del proyecto (un nivel arriba de /scripts)
+cd "$SCRIPT_DIR/.." || exit
 
-# --- 1. Configuración de Identidad Git ---
+# --- 2. Configuración de Identidad Git ---
 git config --global user.email "$GIT_EMAIL"
 git config --global user.name "$GIT_NAME"
 
-# --- 2. Gestión del Repositorio ---
-REPO_DIR=$(basename "$REPO_URL" .git)
-if [ ! -d "$REPO_DIR" ]; then
-    echo "Clonando repositorio..."
-    git clone -b automatización "$REPO_URL" || exit 1
-fi
-cd "$REPO_DIR" || exit
+# --- 3. Gestión del Repositorio ---
+# (Asumiendo que ya estás dentro del repo clonado por el YAML)
 echo "Actualizando código fuente..."
 git pull origin automatización
 
-# --- 3. Configuración de Variables de Entorno (.env) ---
-echo "Sincronizando archivos .env..."
-
+# --- 4. Configuración de Variables (.env) ---
+echo "Generando archivo .env..."
 DB_NAME_VAL="nearmex_db"
 DB_USER_VAL="nearmex_user"
 DB_PASS_VAL="nearmex"
 JWT_SECRET_VAL="NearMex_Secret_Key_2026"
-
-# Configuración SMTP
-SMTP_HOST_VAL="smtp.gmail.com"
-SMTP_PORT_VAL=465
-SMTP_USER_VAL="nearmex.gdl@gmail.com"
-SMTP_PASS_VAL="dvuqwplxtcfiwlwn"
-EMAIL_FROM_VAL="NearMex Avisos <nearmex.gdl@gmail.com>"
 
 cat <<EOF > .env
 DB_NAME=$DB_NAME_VAL
 DB_USER=$DB_USER_VAL
 DB_PASS=$DB_PASS_VAL
 JWT_SECRET=$JWT_SECRET_VAL
-SMTP_HOST=$SMTP_HOST_VAL
-SMTP_PORT=$SMTP_PORT_VAL
-SMTP_USER=$SMTP_USER_VAL
-SMTP_PASS=$SMTP_PASS_VAL
-EMAIL_FROM=$EMAIL_FROM_VAL
 EOF
 
 if [ -d "NearMexBackend" ]; then
@@ -110,48 +100,35 @@ if [ -d "NearMexReact" ]; then
     API_FILE="NearMexReact/src/services/api.js"
     if [ -f "$API_FILE" ]; then
         sed -i "s|const API_URL = 'http://.*:5000/api'|const API_URL = 'http://$IP_PUBLICA:5000/api'|" $API_FILE
-        echo "Endpoint de API actualizado: http://$IP_PUBLICA:5000/api"
     fi
 fi
 
-# --- 4. Despliegue de Infraestructura (Docker) ---
-echo "Reiniciando contenedores (Preservando volúmenes de datos)..."
-# IMPORTANTE: Sin -v para no borrar la base de datos
-docker-compose down 
-
-echo "Construyendo y levantando servicios..."
+# --- 5. Docker y Persistencia ---
+echo "Reiniciando servicios (Preservando volúmenes)..."
+docker-compose down
 docker-compose up -d --build
 
-echo "Esperando inicialización de MariaDB (15s)..."
+echo "Esperando a MariaDB (15s)..."
 sleep 15
 
-# --- 5. Gestión Inteligente de Base de Datos ---
-# Verificamos si la base de datos ya tiene tablas antes de importar el SQL
-TABLAS_EXISTENTES=$(docker exec nearmex_db_container mariadb -u root -p$DB_PASS_VAL -e "SHOW TABLES IN $DB_NAME_VAL;" --silent)
+# Verificar si hay tablas para no borrar datos
+TABLAS=$(docker exec nearmex_db_container mariadb -u root -p$DB_PASS_VAL -e "SHOW TABLES IN $DB_NAME_VAL;" --silent)
 
-if [ -z "$TABLAS_EXISTENTES" ]; then
+if [ -z "$TABLAS" ]; then
     SQL_PATH="NearMexBackend/database.sql"
     if [ -f "$SQL_PATH" ]; then
-        echo "Base de datos nueva detectada. Importando $SQL_PATH..."
+        echo "Importando base de datos inicial..."
         docker exec -i nearmex_db_container mariadb -u root -p$DB_PASS_VAL $DB_NAME_VAL < "$SQL_PATH"
-        echo "Importación completada."
-    else
-        echo "AVISO: No se encontró archivo SQL para inicializar la base de datos."
     fi
 else
-    echo "INFO: La base de datos ya contiene datos. Se omite la importación para evitar sobrescritura."
+    echo "Base de datos con información previa. No se importa el SQL."
 fi
 
-# --- 6. Build de Frontend y Despliegue a S3 ---
+# --- 6. Frontend y S3 ---
 if [ -d "NearMexReact" ]; then
-    echo "Iniciando build de producción para React..."
     cd NearMexReact
     npm install && npm run build
-    echo "Sincronizando con S3: $BUCKET_S3"
     aws s3 sync dist/ s3://$BUCKET_S3 --delete
-    cd ..
 fi
 
-echo "--- DESPLIEGUE FINALIZADO CON ÉXITO ---"
-echo "Backend: http://$IP_PUBLICA:5000"
-echo "Frontend: Desplegado en bucket $BUCKET_S3"
+echo "--- DESPLIEGUE FINALIZADO ---"
