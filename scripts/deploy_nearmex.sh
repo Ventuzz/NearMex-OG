@@ -64,22 +64,23 @@ if [ -d "NearMexReact" ]; then
     cd ..
 fi
 
-# 4. Despliegue con Docker
+# 4. Despliegue con Docker e Importación de Datos
 echo "Levantando contenedores con docker-compose..."
 docker-compose up -d --build
 
-# Esperar unos segundos a que la base de datos esté lista para recibir conexiones
-echo "Esperando a que MariaDB inicie..."
-sleep 15 
+echo "Esperando 15 segundos a que la base de datos inicie correctamente..."
+sleep 15
 
-# IMPORTACIÓN AUTOMÁTICA DE LA BASE DE DATOS
-# Asumiendo que tu archivo se llama database.sql y está en la raíz del repo
-if [ -f "database.sql" ]; then
-    echo "Importando estructura y datos de NearMex..."
-    docker exec -i nearmex_db_container mariadb -u nearmex_user -pnearmex nearmex_db < database.sql
-    echo "Base de datos actualizada con éxito."
+# IMPORTACIÓN AUTOMÁTICA (Ruta corregida)
+# Ahora buscamos el archivo específicamente dentro de la carpeta del Backend
+SQL_PATH="NearMexBackend/database.sql"
+
+if [ -f "$SQL_PATH" ]; then
+    echo "Importando datos desde $SQL_PATH..."
+    docker exec -i nearmex_db_container mariadb -u nearmex_user -pnearmex nearmex_db < "$SQL_PATH"
+    echo "¡Estructura y datos de NearMex importados con éxito!"
 else
-    echo "Aviso: No se encontró database.sql para importar datos."
+    echo "Error: No se encontró el archivo en $SQL_PATH"
 fi
 
 # 5. Build de React y Sincronización con S3
