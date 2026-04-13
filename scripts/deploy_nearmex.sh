@@ -1,22 +1,29 @@
 #!/bin/bash
 # ==================================================
-# deploy_nearmex.sh - Versión Final Corregida
+# deploy_nearmex.sh - Versión UNIVERSAL (Nueva/Existente)
 # ==================================================
 
-# Buscamos el archivo en la misma carpeta donde reside este script
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/.deploy_config"
+# 1. DEFINICIÓN DE RUTAS Y ARCHIVOS
+PROJECT_NAME="NearMex-OG"
+# Intentamos localizar el archivo de configuración en posibles rutas
+if [ -d "$HOME/$PROJECT_NAME/scripts" ]; then
+    CONFIG_FILE="$HOME/$PROJECT_NAME/scripts/.deploy_config"
+else
+    CONFIG_FILE="$HOME/.deploy_config"
+fi
+
+# --- Funciones de Utilidad ---
 
 cargar_configuracion() {
     if [ -f "$CONFIG_FILE" ]; then
-        echo "--- Cargando configuración desde $CONFIG_FILE ---"
+        echo "--- Cargando configuración guardada ---"
         source "$CONFIG_FILE"
-    else
-        echo "--- No se encontró archivo de configuración previo ---"
     fi
 }
 
 guardar_configuracion() {
+    # Asegurar que el directorio del config exista
+    mkdir -p "$(dirname "$CONFIG_FILE")"
     cat <<EOF > "$CONFIG_FILE"
 REPO_URL="$REPO_URL"
 GIT_EMAIL="$GIT_EMAIL"
@@ -32,53 +39,59 @@ validar_campo() {
     local var_name=$2
     local valor_actual="${!var_name}"
     
-    # Si la variable ya tiene valor, saltar
     if [ -n "$valor_actual" ]; then
         echo "> $prompt_text [OK]"
         return
     fi
 
-    # Si NO es una terminal interactiva (como en GitHub Actions) y está vacío, ERROR
     if [ ! -t 0 ]; then
-        echo "ERROR CRÍTICO: La variable $var_name no está definida en el entorno ni en el config."
+        echo "ERROR CRÍTICO: La variable $var_name no está definida y el script no es interactivo."
         exit 1
     fi
 
     local nuevo_valor=""
     while [ -z "$nuevo_valor" ]; do
         read -p "$prompt_text" nuevo_valor
-        if [ -z "$nuevo_valor" ]; then
-            echo "Error: Este campo es obligatorio."
-        fi
     done
     eval "$var_name=\$nuevo_valor"
 }
 
 echo "--- Iniciando Despliegue Automatizado de NearMex ---"
 
-# 0. Intentar cargar configuración
+# 2. GESTIÓN DEL REPOSITORIO (Instancia Nueva vs Existente)
 cargar_configuracion
 
-validar_campo "URL del repositorio GitHub: " REPO_URL
+# Si no estamos dentro de una carpeta git, clonamos
+if [ ! -d ".git" ] && [ ! -d "$HOME/$PROJECT_NAME/.git" ]; then
+    echo "--- Configurando instancia nueva ---"
+    validar_campo "URL del repositorio GitHub: " REPO_URL
+    cd "$HOME"
+    git clone -b automatización "$REPO_URL" "$PROJECT_NAME" || exit 1
+    cd "$PROJECT_NAME"
+else
+    # Si ya existe, nos aseguramos de estar en la carpeta correcta
+    if [ -d "$HOME/$PROJECT_NAME" ]; then
+        cd "$HOME/$PROJECT_NAME"
+    fi
+    echo "--- Repositorio detectado en $(pwd) ---"
+fi
+
+# 3. VALIDACIÓN DE DATOS RESTANTES
 validar_campo "Email de GitHub: " GIT_EMAIL
 validar_campo "Usuario de GitHub: " GIT_NAME
 validar_campo "IP Publica de la EC2: " IP_PUBLICA
 validar_campo "Nombre del Bucket S3: " BUCKET_S3
+guardar_configuracion
 
-# 1. Moverse a la raíz del proyecto (un nivel arriba de /scripts)
-cd "$SCRIPT_DIR/.." || exit
-
-# --- 2. Configuración de Identidad Git ---
+# 4. ACTUALIZACIÓN DE CÓDIGO
 git config --global user.email "$GIT_EMAIL"
 git config --global user.name "$GIT_NAME"
+echo "Sincronizando con rama automatización..."
+git fetch origin automatización
+git reset --hard origin/automatización
 
-# --- 3. Gestión del Repositorio ---
-# (Asumiendo que ya estás dentro del repo clonado por el YAML)
-echo "Actualizando código fuente..."
-git pull origin automatización
-
-# --- 4. Configuración de Variables (.env) ---
-echo "Generando archivo .env..."
+# 5. CONFIGURACIÓN DE VARIABLES (.env)
+echo "Generando archivos de configuración .env..."
 DB_NAME_VAL="nearmex_db"
 DB_USER_VAL="nearmex_user"
 DB_PASS_VAL="nearmex"
@@ -91,44 +104,42 @@ DB_PASS=$DB_PASS_VAL
 JWT_SECRET=$JWT_SECRET_VAL
 EOF
 
-if [ -d "NearMexBackend" ]; then
-    cp .env NearMexBackend/.env
-    echo "DB_HOST=nearmex-db" >> NearMexBackend/.env
-fi
-
+[ -d "NearMexBackend" ] && cp .env NearMexBackend/.env && echo "DB_HOST=nearmex-db" >> NearMexBackend/.env
 if [ -d "NearMexReact" ]; then
     API_FILE="NearMexReact/src/services/api.js"
-    if [ -f "$API_FILE" ]; then
-        sed -i "s|const API_URL = 'http://.*:5000/api'|const API_URL = 'http://$IP_PUBLICA:5000/api'|" $API_FILE
-    fi
+    [ -f "$API_FILE" ] && sed -i "s|const API_URL = 'http://.*:5000/api'|const API_URL = 'http://$IP_PUBLICA:5000/api'|" "$API_FILE"
 fi
 
-# --- 5. Docker y Persistencia ---
-echo "Reiniciando servicios (Preservando volúmenes)..."
-docker-compose down
+# 6. DOCKER Y PERSISTENCIA DE DATOS
+echo "Reiniciando servicios (Sin borrar volúmenes)..."
+docker-compose down # Sin -v para mantener la DB
 docker-compose up -d --build
 
-echo "Esperando a MariaDB (15s)..."
+echo "Esperando inicialización de MariaDB..."
 sleep 15
 
-# Verificar si hay tablas para no borrar datos
-TABLAS=$(docker exec nearmex_db_container mariadb -u root -p$DB_PASS_VAL -e "SHOW TABLES IN $DB_NAME_VAL;" --silent)
+# Revisar si la DB ya tiene datos para no sobrescribir
+TABLAS=$(docker exec nearmex_db_container mariadb -u root -p$DB_PASS_VAL -e "SHOW TABLES IN $DB_NAME_VAL;" --silent 2>/dev/null)
 
 if [ -z "$TABLAS" ]; then
     SQL_PATH="NearMexBackend/database.sql"
     if [ -f "$SQL_PATH" ]; then
-        echo "Importando base de datos inicial..."
+        echo "Base de datos vacía. Importando estructura inicial..."
         docker exec -i nearmex_db_container mariadb -u root -p$DB_PASS_VAL $DB_NAME_VAL < "$SQL_PATH"
     fi
 else
-    echo "Base de datos con información previa. No se importa el SQL."
+    echo "Base de datos con datos previos. Se mantiene la información actual."
 fi
 
-# --- 6. Frontend y S3 ---
+# 7. FRONTEND Y DESPLIEGUE S3
 if [ -d "NearMexReact" ]; then
+    echo "Construyendo Frontend..."
     cd NearMexReact
     npm install && npm run build
+    echo "Sincronizando con S3..."
     aws s3 sync dist/ s3://$BUCKET_S3 --delete
+    cd ..
 fi
 
-echo "--- DESPLIEGUE FINALIZADO ---"
+echo "--- DESPLIEGUE FINALIZADO CON ÉXITO ---"
+echo "URL Backend: http://$IP_PUBLICA:5000"
