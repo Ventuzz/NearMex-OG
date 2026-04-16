@@ -6,7 +6,7 @@ Resources:
   FrontendBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: nearmexwebb
+      BucketName: nearmexwebserver
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -33,7 +33,7 @@ Resources:
   BackupsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: nearmexbackupss
+      BucketName: nearmexbackupsss
       VersioningConfiguration:
         Status: Enabled
 
