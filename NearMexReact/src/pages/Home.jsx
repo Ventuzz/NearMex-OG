@@ -79,7 +79,7 @@ const Home = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <h6 style={{ fontSize: '24px' }}>Encuentra tu próximo destino</h6>
+                                        <h6 style={{ fontSize: '24px' }}>Encuentra tu siguiente destino</h6>
                                         <h2 style={{ position: 'relative', display: 'inline-block', fontSize: '56px' }}>
                                             Descubre lo mejor de Guadalajara
                                         </h2>
